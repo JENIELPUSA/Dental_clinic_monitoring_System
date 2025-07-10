@@ -52,7 +52,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.LOCAL_CONN_STR,
+      mongoUrl: process.env.CONN_STR,
       ttl: 24 * 60 * 60, // 24 hours in seconds
     }),
     cookie: {
