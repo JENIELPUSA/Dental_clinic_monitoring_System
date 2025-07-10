@@ -42,7 +42,7 @@ const DentalClinicCalendar = () => {
         return rawCalendardata.filter((entry) => entry.status === "Approved" && entry.timeSlots && entry.timeSlots.length > 0);
     }, [rawCalendardata]);
 
-    const [currentMonth, setCurrentMonth] = useState(new Date("2025-06-12T00:00:00.000Z"));
+    const [currentMonth, setCurrentMonth] = useState(() => new Date());
 
     const groupedAppointments = useMemo(() => {
         const groups = new Map();
@@ -132,18 +132,8 @@ const DentalClinicCalendar = () => {
                         className="transform rounded-full bg-gray-200 p-2 text-gray-800 shadow-md transition-colors hover:scale-105 hover:bg-gray-300 hover:shadow-lg dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                         aria-label="Previous Month"
                     >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M15 19l-7-7 7-7"
-                            ></path>
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
                     <button
@@ -151,18 +141,8 @@ const DentalClinicCalendar = () => {
                         className="transform rounded-full bg-gray-200 p-2 text-gray-800 shadow-md transition-colors hover:scale-105 hover:bg-gray-300 hover:shadow-lg dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                         aria-label="Next Month"
                     >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M9 5l7 7-7 7"
-                            ></path>
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
                     <button
@@ -194,10 +174,7 @@ const DentalClinicCalendar = () => {
         return (
             <div className="mb-2 grid grid-cols-7 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">
                 {dayNames.map((day) => (
-                    <div
-                        key={day}
-                        className="mx-0.5 rounded-md bg-gray-200 py-2.5 shadow-sm dark:bg-gray-700"
-                    >
+                    <div key={day} className="mx-0.5 rounded-md bg-gray-200 py-2.5 shadow-sm dark:bg-gray-700">
                         {day}
                     </div>
                 ))}
@@ -228,21 +205,22 @@ const DentalClinicCalendar = () => {
                             ? "border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-800"
                             : "border border-gray-200 bg-gray-50 opacity-80 dark:border-gray-800 dark:bg-gray-900"
                     } ${
-                        isTodayDay ? "border-2 border-blue-500 font-bold ring-2 ring-blue-500 dark:border-blue-400 dark:ring-blue-400" : ""
+                        isTodayDay
+                            ? "border-2 border-blue-500 font-bold ring-2 ring-blue-500 dark:border-blue-400 dark:ring-blue-400"
+                            : ""
                     } cursor-pointer transition-colors duration-200 hover:bg-blue-50 dark:hover:bg-gray-700`}
                 >
                     <span
-                        className={`absolute left-2 top-2 text-sm font-semibold sm:text-base ${isTodayDay ? "text-blue-700 dark:text-blue-300" : "text-gray-800 dark:text-gray-200"} ${!isCurrentMonthDay ? "text-gray-500 dark:text-gray-400" : ""}`}
+                        className={`absolute left-2 top-2 text-sm font-semibold sm:text-base ${
+                            isTodayDay ? "text-blue-700 dark:text-blue-300" : "text-gray-800 dark:text-gray-200"
+                        } ${!isCurrentMonthDay ? "text-gray-500 dark:text-gray-400" : ""}`}
                     >
                         {format(day, "d")}
                     </span>
 
                     <div className="scrollbar-hide mt-7 max-h-[85px] space-y-1 overflow-y-auto sm:mt-9 sm:max-h-[100px] lg:max-h-[120px]">
                         {dayAppointments.map((event) => (
-                            <CalendarEventCard
-                                key={event.id}
-                                event={event}
-                            />
+                            <CalendarEventCard key={event.id} event={event} />
                         ))}
                     </div>
                 </div>,

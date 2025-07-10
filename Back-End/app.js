@@ -65,8 +65,7 @@ app.use(
 );
 app.use(
   cors({
-    //origin: process.env.FRONTEND_URL,
-     origin:"https://dental-clinic-monitoring-system-web.onrender.com",
+    origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST", "PATCH", "DELETE"],
     credentials: true,
   })

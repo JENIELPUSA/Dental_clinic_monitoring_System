@@ -1,13 +1,4 @@
 import { motion } from "framer-motion";
-
-/**
- * Loading Overlay for Dental Applications
- *
- * Displays an elegant, full-screen loading state to users during data fetching
- * or process execution. This component features a smooth, rotating spinner
- * and a gently pulsing "Loading data..." message, ensuring a clear and
- * aesthetically pleasing waiting experience.
- */
 const DentalLoading = () => {
   return (
     <div

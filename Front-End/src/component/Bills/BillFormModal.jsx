@@ -84,7 +84,7 @@ const BillFormModal = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-600 bg-opacity-75 p-4 dark:bg-gray-900 dark:bg-opacity-85"
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-gray-600 bg-opacity-75 p-4 dark:bg-gray-900 dark:bg-opacity-85"
         >
           <motion.div
             initial={{ scale: 0.9, y: -50, opacity: 0 }}

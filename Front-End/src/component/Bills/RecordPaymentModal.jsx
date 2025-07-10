@@ -28,7 +28,7 @@ const RecordPaymentModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-600 bg-opacity-75 p-4 dark:bg-gray-900 dark:bg-opacity-85">
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-gray-600 bg-opacity-75 p-4 dark:bg-gray-900 dark:bg-opacity-85">
       <div className="w-full max-w-md scale-100 transform rounded-xl bg-white p-6 opacity-100 shadow-2xl transition-all duration-300 md:p-8 dark:bg-gray-800 dark:border dark:border-blue-800/50">
         <h2 className="mb-6 text-center text-3xl font-bold text-gray-800 dark:text-blue-200">
           Record Payment

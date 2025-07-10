@@ -6,8 +6,6 @@ const Task = require("../Models/TaskSchema");
 const checkPendingAppointments = () => {
   cron.schedule("0 * * * *", async () => {
     try {
-      console.log(`\n[${new Date().toISOString()}] 🧪 CRON: Checking pending appointments...`);
-
       const pendingAppointments = await Appointment.find({ appointment_status: "Pending" }).populate("patient_id doctor_id");
 
       for (const appointment of pendingAppointments) {

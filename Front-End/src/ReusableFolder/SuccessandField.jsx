@@ -8,7 +8,7 @@ export default function StatusModal({ isOpen, onClose, status = "success" }) {
   const buttonColor = isSuccess ? "bg-emerald-600" : "bg-rose-600";
 
   return isOpen ? (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50 p-4">
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
