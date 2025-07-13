@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect } from "react";
 import { PatientDisplayContext } from "../../contexts/PatientContext/PatientContext";
-import { PencilIcon, TrashIcon, UserRoundPlus,User } from "lucide-react";
+import { PencilIcon, TrashIcon, UserRoundPlus, User } from "lucide-react";
 import PatientFormModal from "./AddFormPatients";
 import Register from "../Login/Register";
 import StatusVerification from "../../ReusableFolder/StatusModal";

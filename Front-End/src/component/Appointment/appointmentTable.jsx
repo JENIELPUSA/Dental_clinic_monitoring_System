@@ -30,9 +30,6 @@ const AppointmentTable = () => {
             GetPatientAppointment(linkId);
         }
     }, [linkId, role]);
-
-    console.log("Appoint", appointmentList);
-
     const getStatusBadge = (status) => {
         let badgeClasses = "px-2 py-1 rounded-full text-xs font-semibold text-white ";
 

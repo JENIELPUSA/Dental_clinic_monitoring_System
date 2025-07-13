@@ -33,9 +33,6 @@ export default function AuthForm() {
         emergencyContactNumber: "",
         dob: "",
     });
-
-    console.log("isUSer", isUser);
-
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
 

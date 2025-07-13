@@ -30,7 +30,6 @@ export const AppointmentDisplayProvider = ({ children }) => {
 
     useEffect(() => {
         if (!authToken) {
-            console.log("NO token");
             setAppointment([]);
             setSpecificAppointment([]);
             setLoading(false);
@@ -112,27 +111,29 @@ export const AppointmentDisplayProvider = ({ children }) => {
         }
     };
 
-    const GetPatientAppointment = async (dataId) => {
-        if (!authToken) return;
-        setLoading(true);
-        try {
-            const res = await axiosInstance.get(
-                `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Appointment/GetPatientAppointment/${dataId}`,
-                {
-                    withCredentials: true,
-                    headers: { Authorization: `Bearer ${authToken}` },
-                },
-            );
+const GetPatientAppointment = async (dataId) => {
+    if (!dataId || !authToken) return; 
 
-            const Patient = res?.data.data;
-            setPatientData(Patient);
-        } catch (error) {
-            console.error("Error fetching data:", error);
-            setError("Failed to fetch data");
-        } finally {
-            setLoading(false);
-        }
-    };
+    setLoading(true);
+    try {
+        const res = await axiosInstance.get(
+            `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Appointment/GetPatientAppointment/${dataId}`,
+            {
+                withCredentials: true,
+                headers: { Authorization: `Bearer ${authToken}` },
+            },
+        );
+
+        const Patient = res?.data.data;
+        setPatientData(Patient);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        setError("Failed to fetch data");
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     const AddBooking = async (values) => {
         try {

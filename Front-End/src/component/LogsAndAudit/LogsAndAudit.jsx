@@ -33,10 +33,6 @@ const LogsAndAudit = () => {
     }, [isLogs, filterActionType, startDate, endDate]);
 
     const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
-
-
-    console.log("Logs",filteredLogs)
-
     const uniqueActionTypes = useMemo(() => {
         const types = new Set((isLogs || []).map(log => log.action_type));
         return ['All', ...Array.from(types).sort()];

@@ -16,7 +16,6 @@ export const InsuranceDisplayProvider = ({ children }) => {
 
     useEffect(() => {
         if (!authToken) {
-            console.log("NO token");
             setInsurance([]);
             setLoading(false);
             return;
@@ -43,11 +42,8 @@ export const InsuranceDisplayProvider = ({ children }) => {
                 withCredentials: true,
                 headers: { Authorization: `Bearer ${authToken}` },
             });
-
             const insurance = res?.data.data;
             setInsurance(insurance);
-
-            console.log("Insured", insurance);
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {

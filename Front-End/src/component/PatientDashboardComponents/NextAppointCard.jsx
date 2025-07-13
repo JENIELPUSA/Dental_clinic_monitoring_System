@@ -39,16 +39,7 @@ function NextAppointCard() {
                         const timeStr = app.start_time.padStart(5, '0'); // e.g., "2:44" → "02:44"
                         const [hours, minutes] = timeStr.split(':').map(Number);
                         const [year, month, day] = dateStr.split('-').map(Number);
-
-                        // Use UTC to avoid timezone mismatch
                         const datetime = new Date(Date.UTC(year, month - 1, day, hours, minutes));
-
-                        console.log("🕐 Checking datetime:", {
-                            _id: app._id,
-                            datetime: datetime.toISOString(),
-                            isFuture: datetime > now
-                        });
-
                         return {
                             ...app,
                             datetime,

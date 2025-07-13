@@ -40,8 +40,6 @@ export const StaffDisplayProvider = ({ children }) => {
         setUserId(userId);
     };
 
-    console.log("Role", role);
-
     const AddStaff = async (values) => {
         try {
             const res = await axiosInstance.post(
@@ -59,9 +57,6 @@ export const StaffDisplayProvider = ({ children }) => {
                     headers: { Authorization: `Bearer ${authToken}` },
                 },
             );
-
-            console.log("Response Status:", res.data.status);
-
             if (res.data.status === "Success") {
                 const newStaff = res.data.user;
 

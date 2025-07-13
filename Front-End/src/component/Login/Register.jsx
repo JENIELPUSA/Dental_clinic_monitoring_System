@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PatientDisplayContext } from "../../contexts/PatientContext/PatientContext";
 import { DoctorDisplayContext } from "../../contexts/DoctorContext/doctorContext";
 import { StaffDisplayContext } from "../../contexts/StaffContext/StaffContext";
+import LoadingOverlay from "../ReusableComponents/LoadingOverlay";
 const RegisterFormModal = ({ isOpen, onClose, role }) => {
     const [formData, setFormData] = useState({
         first_name: "",
@@ -23,6 +24,8 @@ const RegisterFormModal = ({ isOpen, onClose, role }) => {
     const { AddPatient } = useContext(PatientDisplayContext);
     const { AddDoctor } = useContext(DoctorDisplayContext);
     const { AddStaff } = useContext(StaffDisplayContext);
+    const [isLoading, setIsLoading] = useState(false);
+
 
     const [passwordError, setPasswordError] = useState("");
     useEffect(() => {
@@ -43,33 +46,37 @@ const RegisterFormModal = ({ isOpen, onClose, role }) => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
 
-        if (formData.password !== formData.confirm_password) {
-            setPasswordError("Passwords do not match!");
-            return;
-        }
+  if (formData.password !== formData.confirm_password) {
+    setPasswordError("Passwords do not match!");
+    setIsLoading(false);
+    return;
+  }
 
-        const { confirm_password, ...dataToSend } = formData;
+  const { confirm_password, ...dataToSend } = formData;
 
-        if (role === "patient") {
-            await AddPatient(dataToSend);
-        } else if (role === "doctor") {
-            const result = await AddDoctor(dataToSend);
-            if (result?.Success === true) {
-                console.log("Successfully Added");
-            }
+  try {
+    if (role === "patient") {
+      await AddPatient(dataToSend);
+    } else if (role === "doctor") {
+      await AddDoctor(dataToSend);
+    } else if (role === "staff") {
+      await AddStaff(dataToSend);
+    }
 
-            console.log("Submitting doctor data:", dataToSend);
-        } else if (role === "staff") {
-            await AddStaff(dataToSend);
+    setTimeout(() => {
+      setIsLoading(false);
+      onClose();
+    }, 1000);
+  } catch (err) {
+    console.error("Submission error:", err);
+    setIsLoading(false);
+  }
+};
 
-        }
-        setTimeout(() => {
-            onClose();
-        }, 1000);
-    };
 
     const resetForm = () => {
         setFormData({
@@ -386,12 +393,14 @@ const RegisterFormModal = ({ isOpen, onClose, role }) => {
                             <div className="mt-8 flex justify-center">
                                 <button
                                     type="submit"
+                                    disabled={isLoading}
                                     className="transform rounded-full bg-gradient-to-r from-blue-600 to-blue-800 px-10 py-3 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:from-blue-700 hover:to-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-opacity-75"
                                 >
                                     Register Account
                                 </button>
                             </div>
                         </form>
+                        {isLoading && <LoadingOverlay message="Loading, please wait..." />}
                     </motion.div>
                 </motion.div>
             )}

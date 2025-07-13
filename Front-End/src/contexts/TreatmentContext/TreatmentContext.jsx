@@ -60,7 +60,7 @@ export const TreatmentDisplayProvider = ({ children }) => {
 
 
     const fetchSpecificTreatment = async (Id) => {
-        if (!authToken) return;
+        if (!Id || !authToken) return;
 
         setLoading(true);
         try {

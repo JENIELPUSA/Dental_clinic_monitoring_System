@@ -1,6 +1,6 @@
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useTheme } from "@/hooks/use-theme";
-import { useContext, useMemo, useEffect } from "react";
+import { useContext, useMemo } from "react";
 import { AuthContext } from "../../../contexts/AuthContext";
 import DashboardLayoutPatient from "../../PatientDashboardComponents/DashboardLayout";
 import { BillDisplayContext } from "../../../contexts/BillContext/BillContext";
@@ -16,15 +16,8 @@ const StatisticsGraph = () => {
     const tooltipTextColor = theme === "dark" ? "#f8fafc" : "#1e3a8a";
     const lineColor = "#3b82f6";
 
-    const currentYear = new Date().getFullYear(); 
-    useEffect(() => {
-      
-        if (Array.isArray(isBIll)) {
-            isBIll.forEach(item => {
-                console.log("bill_date:", item.bill_date, "parsed:", new Date(item.bill_date));
-            });
-        }
-    }, [isBIll]);
+    const currentYear = new Date().getFullYear();
+
     const overviewData = useMemo(() => {
         const monthlyRevenueMap = new Map();
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

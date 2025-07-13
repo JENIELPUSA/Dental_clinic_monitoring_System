@@ -26,7 +26,6 @@ export const PatientDisplayProvider = ({ children }) => {
 
     useEffect(() => {
         if (!authToken) {
-            console.log("NO token");
             setPatients([]);
             setLoading(false);
             return;
@@ -133,7 +132,6 @@ export const PatientDisplayProvider = ({ children }) => {
     };
 
     const AddPatient = async (values) => {
-        console.log("Psyload", values);
         try {
             const res = await axiosInstance.post(
                 `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/authentication/signup`,

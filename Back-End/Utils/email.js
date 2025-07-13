@@ -194,7 +194,7 @@ const sendEmail = async (options) => {
                     </p>
                     
                     <div class="btn-container">
-                        <a href="https://brightsmileclinic.com" class="btn">Visit Our Website</a>
+                        <a href="https://dental-clinic-monitoring-system-web.onrender.com" class="btn">Visit Our Website</a>
                     </div>
                     
                     <div class="contact-info">

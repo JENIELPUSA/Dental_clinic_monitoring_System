@@ -30,7 +30,6 @@ const SocketListener = () => {
   // Register user on socket connection
   useEffect(() => {
     if (!linkId || !role) return;
-    console.log("📡 Registering socket:", linkId, role);
     socket.emit("register-user", linkId, role);
   }, [linkId, role]);
 

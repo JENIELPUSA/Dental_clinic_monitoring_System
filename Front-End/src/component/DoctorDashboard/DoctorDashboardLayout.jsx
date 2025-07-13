@@ -76,8 +76,6 @@ const DoctorDashboardLayout = () => {
         />
       );
     }
-    console.log("UserDocID",linkId)
-
     return (
       <div className="space-y-8 ">
         {/* Stat Cards Section with Slide Down */}

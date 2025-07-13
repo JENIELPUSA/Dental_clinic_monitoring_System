@@ -94,11 +94,7 @@ function CalendarSchedule() {
     const [selectedDoctorTimeStartForForm, setSelectedDoctorTimeStartForForm] = useState(null);
     const [selectedDoctorTimeEndForForm, setSelectedDoctorTimeEndForForm] = useState(null);
     const [selectedDateForForm, setSelectedDateForForm] = useState(null);
-
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    console.log("DoctorCheck", selectedDateDoctors);
-
     useEffect(() => {
         if (doctor) {
             const data = processDoctorData(doctor);
