@@ -35,6 +35,12 @@ const Logs=require("./Routes/LogsRoute")
 
 const Staff=require("./Routes/StaffRoute")
 
+const Category = require("./Routes/categoryRoute")
+
+const inventory = require("./Routes/InventoryRoute")
+
+const release = require("./Routes/ReleaseRoute")
+
 const authentic = require("./Routes/authRouter");
 let app = express();
 
@@ -95,6 +101,10 @@ app.use("/api/v1/Notification", Notification);
 app.use("/api/v1/LogsAudit", Logs);
 app.use("/api/v1/Task", Task);
 app.use("/api/v1/Staff", Staff);
+app.use("/api/v1/InventoryCategory", Category);
+app.use("/api/v1/Inventory", inventory);
+app.use("/api/v1/Release", release);
+
 
 app.use(ErrorController);
 

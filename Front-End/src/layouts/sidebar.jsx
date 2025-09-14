@@ -31,12 +31,14 @@ export const Sidebar = forwardRef(({ collapsed }, ref) => {
             "/dashboard/all-patients",
             "/dashboard/Treatment",
             "/dashboard/prescription",
-            "/dashboard/doctors",
+            "/dashboard/Accounts",
             "/dashboard/new-patients",
             "/dashboard/bill","/dashboard/Change-Password"
         ],
         patient: ["/dashboard","/dashboard/Treatment", "/dashboard/appointment","/dashboard/Change-Password"],
-        Admin: [],
+        Admin: [
+              
+        ],
     };
 
     const handleLogout = async () => {

@@ -6,7 +6,7 @@ const authController = require('./../Controller/authController')
 
 router.route('/')
     .post(authController.protect,SchedController.createSchedule)
-    .get(authController.protect,SchedController.DisplaySchedule)
+    .get(SchedController.DisplaySchedule)
 
 router.route('/:id')
 .delete(authController.protect,SchedController.deleteSched)

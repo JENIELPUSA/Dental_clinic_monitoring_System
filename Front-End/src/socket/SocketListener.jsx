@@ -6,138 +6,145 @@ import socket from "../socket.js";
 import { toast } from "react-toastify";
 import { SchedDisplayContext } from "../contexts/Schedule/ScheduleContext.jsx";
 import { TreatmentDisplayContext } from "../contexts/TreatmentContext/TreatmentContext.jsx";
-
+import { InventoryDisplayContext } from "../contexts/InventoryContext/InventoryContext.jsx";
 const SocketListener = () => {
-  const { AddSocketTreatment } = useContext(TreatmentDisplayContext);
-  const { AddSchedule, updateStatusSocketData, fetchSchedData } = useContext(SchedDisplayContext);
-  const { role, linkId } = useAuth();
-  const { setNotify } = useNotificationDisplay();
-  const { addAppointment, updateAppointmentSocketData } = useContext(AppointmentDisplayContext);
+    const { AddSocketTreatment } = useContext(TreatmentDisplayContext);
+    const { AddSchedule, updateStatusSocketData, fetchSchedData } = useContext(SchedDisplayContext);
+    const { role, linkId } = useAuth();
+    const { setNotify } = useNotificationDisplay();
+    const { addAppointment, updateAppointmentSocketData } = useContext(AppointmentDisplayContext);
+    const { fetchInventory } = useContext(InventoryDisplayContext);
 
-  // Helper to format socket notification into UI state format
-  const formatNotification = (data, fallbackMessage = "You have a new notification") => ({
-    _id: data._id || Math.random().toString(36).substr(2, 9),
-    message: data.message || fallbackMessage,
-    createdAt: data.createdAt || new Date().toISOString(),
-    viewers: [
-      {
-        user: linkId,
-        isRead: false,
-      },
-    ],
-  });
+    // Helper to format socket notification into UI state format
+    const formatNotification = (data, fallbackMessage = "You have a new notification") => ({
+        _id: data._id || Math.random().toString(36).substr(2, 9),
+        message: data.message || fallbackMessage,
+        createdAt: data.createdAt || new Date().toISOString(),
+        viewers: [
+            {
+                user: linkId,
+                isRead: false,
+            },
+        ],
+    });
 
-  // Register user on socket connection
-  useEffect(() => {
-    if (!linkId || !role) return;
-    socket.emit("register-user", linkId, role);
-  }, [linkId, role]);
+    // Register user on socket connection
+    useEffect(() => {
+        if (!linkId || !role) return;
+        socket.emit("register-user", linkId, role);
+    }, [linkId, role]);
 
-  // Listen to socket events
-  useEffect(() => {
-    if (!linkId || !role) return;
+    // Listen to socket events
+    useEffect(() => {
+        if (!linkId || !role) return;
 
-    const handleAdminNotification = (data) => {
-      setNotify((prev) => {
-        const exists = prev.some((n) => n._id === data._id);
-        if (exists) return prev;
-        return [formatNotification(data), ...prev];
-      });
-    };
+        const handleAdminNotification = (data) => {
+            setNotify((prev) => {
+                const exists = prev.some((n) => n._id === data._id);
+                if (exists) return prev;
+                return [formatNotification(data), ...prev];
+            });
+        };
 
-    const handleSMSNotification = (data) => {
-      setNotify((prev) => {
-        const exists = prev.some((n) => n._id === data._id);
-        if (exists) return prev;
-        return [formatNotification(data), ...prev];
-      });
-    };
+        const handleSMSNotification = (data) => {
+            setNotify((prev) => {
+                const exists = prev.some((n) => n._id === data._id);
+                if (exists) return prev;
+                return [formatNotification(data), ...prev];
+            });
+        };
 
-    const handleAppointmentConfirmed = (data) => {
-      setNotify((prev) => {
-        const exists = prev.some((n) => n._id === data._id);
-        if (exists) return prev;
-        return [formatNotification(data), ...prev];
-      });
-    };
+        const handleAppointmentConfirmed = (data) => {
+            setNotify((prev) => {
+                const exists = prev.some((n) => n._id === data._id);
+                if (exists) return prev;
+                return [formatNotification(data), ...prev];
+            });
+        };
 
-    const handleNotificationReset = ({ count }) => {
-      toast.dismiss();
-    };
+        const handleNotificationReset = ({ count }) => {
+            toast.dismiss();
+        };
 
-    const handleScheduleAssigned = (data) => {
-      setNotify((prev) => {
-        const exists = prev.some((n) => n._id === data._id);
-        if (exists) return prev;
-        return [formatNotification(data), ...prev];
-      });
-      AddSchedule(data);
-    };
+        const handleScheduleAssigned = (data) => {
+            setNotify((prev) => {
+                const exists = prev.some((n) => n._id === data._id);
+                if (exists) return prev;
+                return [formatNotification(data), ...prev];
+            });
+            AddSchedule(data);
+        };
 
-    const handleBillNotification = (data) => {
-      setNotify((prev) => {
-        const exists = prev.some((n) => n._id === data._id);
-        if (exists) return prev;
-        return [formatNotification(data), ...prev];
-      });
-    };
+        const handleBillNotification = (data) => {
+            setNotify((prev) => {
+                const exists = prev.some((n) => n._id === data._id);
+                if (exists) return prev;
+                return [formatNotification(data), ...prev];
+            });
+        };
 
-    const handleTreatmentNotification = (data) => {
-      setNotify((prev) => {
-        const exists = prev.some((n) => n._id === data._id);
-        if (exists) return prev;
-        return [formatNotification(data), ...prev];
-      });
-    };
+        const handleTreatmentNotification = (data) => {
+            setNotify((prev) => {
+                const exists = prev.some((n) => n._id === data._id);
+                if (exists) return prev;
+                return [formatNotification(data), ...prev];
+            });
+        };
 
-    const handleAppointmentUpdated = (data) => {
-      updateAppointmentSocketData(data);
-      fetchSchedData();
-    };
+        const handleAppointmentUpdated = (data) => {
+            updateAppointmentSocketData(data);
+            fetchSchedData();
+        };
 
-    const handleStatusSched = (data) => {
-      updateStatusSocketData(data);
-    };
+        const handleStatusSched = (data) => {
+            updateStatusSocketData(data);
+        };
 
-    const handleNewAppointment = (data) => {
-      addAppointment(data);
-      fetchSchedData();
-    };
+        const handleNewAppointment = (data) => {
+            addAppointment(data);
+            fetchSchedData();
+        };
 
-    const handleNewTreatment = (data) => {
-      AddSocketTreatment(data);
-    };
+        const handleNewTreatment = (data) => {
+            AddSocketTreatment(data);
+        };
 
-    // Register listeners
-    socket.on("adminNotification", handleAdminNotification);
-    socket.on("SMSNotification", handleSMSNotification);
-    socket.on("appointmentConfirmed", handleAppointmentConfirmed);
-    socket.on("notificationCountReset", handleNotificationReset);
-    socket.on("scheduleAssigned", handleScheduleAssigned);
-    socket.on("billNotification", handleBillNotification);
-    socket.on("treatmentNotification", handleTreatmentNotification);
-    socket.on("updated-appointment", handleAppointmentUpdated);
-    socket.on("scheduleStatusUpdated", handleStatusSched);
-    socket.on("new-appointment", handleNewAppointment);
-    socket.on("new-treatment", handleNewTreatment);
+        const handleNewrelease = () => {
+            fetchInventory();
+        };
 
-    // Cleanup listeners on unmount
-    return () => {
-      socket.off("adminNotification", handleAdminNotification);
-      socket.off("SMSNotification", handleSMSNotification);
-      socket.off("appointmentConfirmed", handleAppointmentConfirmed);
-      socket.off("notificationCountReset", handleNotificationReset);
-      socket.off("scheduleAssigned", handleScheduleAssigned);
-      socket.off("billNotification", handleBillNotification);
-      socket.off("treatmentNotification", handleTreatmentNotification);
-      socket.off("updated-appointment", handleAppointmentUpdated);
-      socket.off("scheduleStatusUpdated", handleStatusSched);
-      socket.off("new-appointment", handleNewAppointment);
-      socket.off("new-treatment", handleNewTreatment);
-    };
-  }, [linkId, role, setNotify, addAppointment, fetchSchedData]);
+        // Register listeners
+        socket.on("adminNotification", handleAdminNotification);
+        socket.on("SMSNotification", handleSMSNotification);
+        socket.on("appointmentConfirmed", handleAppointmentConfirmed);
+        socket.on("notificationCountReset", handleNotificationReset);
+        socket.on("scheduleAssigned", handleScheduleAssigned);
+        socket.on("billNotification", handleBillNotification);
+        socket.on("treatmentNotification", handleTreatmentNotification);
+        socket.on("updated-appointment", handleAppointmentUpdated);
+        socket.on("scheduleStatusUpdated", handleStatusSched);
+        socket.on("new-appointment", handleNewAppointment);
+        socket.on("new-treatment", handleNewTreatment);
+        socket.on("releaseItemAdded", handleNewrelease);
 
-  return null; // This component only handles socket listeners
+        // Cleanup listeners on unmount
+        return () => {
+            socket.off("releaseItemAdded", handleNewrelease);
+            socket.off("adminNotification", handleAdminNotification);
+            socket.off("SMSNotification", handleSMSNotification);
+            socket.off("appointmentConfirmed", handleAppointmentConfirmed);
+            socket.off("notificationCountReset", handleNotificationReset);
+            socket.off("scheduleAssigned", handleScheduleAssigned);
+            socket.off("billNotification", handleBillNotification);
+            socket.off("treatmentNotification", handleTreatmentNotification);
+            socket.off("updated-appointment", handleAppointmentUpdated);
+            socket.off("scheduleStatusUpdated", handleStatusSched);
+            socket.off("new-appointment", handleNewAppointment);
+            socket.off("new-treatment", handleNewTreatment);
+        };
+    }, [linkId, role, setNotify, addAppointment, fetchSchedData]);
+
+    return null; // This component only handles socket listeners
 };
 
 export default SocketListener;

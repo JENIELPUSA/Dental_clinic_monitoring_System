@@ -20,18 +20,21 @@ import InsuranceTable from "./component/insurance/insuranceTable";
 import DentalHistoryTable from "./component/DentalHistory/DentalHistoryTable";
 import UpdatePassword from "./component/Login/UpdatePassword";
 import StaffTable from "./component/Staff/StaffTable";
-import BillsLayout from "./component/Bills/BillsLayout";
+import BillsLayout from "./component/Bills/BillsLayoutslide";
 import PrivateRoute from "./component/PrivateRoute/PrivateRoute";
 import PublicRoute from "./component/PublicRoute/PublicRoute";
+import InventoryLayout from "./component/Inventory/InventoryLayout";
+import ManageLayout from "./component/DashboardAdminComponent/ManageAccountLayout";
+import LandingPage from "./component/LandingPage/landingPage";
 
 function App() {
   const router = createBrowserRouter([
     {
       element: <PublicRoute />,
       children: [
-        { path: "/login", element: <Login /> },
+        { path: "/login", element: <LandingPage /> },
         { path: "/reset-password/:token", element: <ResetPassword /> },
-        { path: "/", element: <Login /> },
+        { path: "/", element: <LandingPage /> },
       ],
     },
 
@@ -45,19 +48,17 @@ function App() {
           element: <Layout />,
           children: [
             { index: true, element: <DashboardPage /> },
-            { path: "all-patients", element: <AllPatientsLayout /> },
-            { path: "new-patients", element: <LayoutPatient /> },
             { path: "dentalhistory", element: <DentalHistoryTable /> },
             { path: "appointment", element: <AppointmentLayout /> },
             { path: "bill", element: <BillsLayout /> },
-            { path: "doctors", element: <DoctorLayout /> },
             { path: "booking", element: <BookingDisplay /> },
             { path: "prescription", element: <Prescription /> },
             { path: "Schedule", element: <LayoutSchedule /> },
             { path: "Change-Password", element: <UpdatePassword /> },
             { path: "Treatment", element: <TreatmentTable /> },
             { path: "Insurance", element: <InsuranceTable /> },
-            { path: "Staff", element: <StaffTable /> },
+            { path: "Inventory", element: <InventoryLayout /> },
+            { path: "Accounts", element: <ManageLayout /> },
           ],
         },
       ],

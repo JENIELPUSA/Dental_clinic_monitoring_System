@@ -16,44 +16,15 @@ export const navbarLinks = [
             },
         ],
     },
-    {
-        title: "Patients",
+     {
+        title: "Manage Accounts",
         links: [
             {
-                label: "Patients",
+                label: "Accounts",
                 icon: Users,
-                path: "/dashboard/all-patients",
-            },
-            {
-                label: "New Patients",
-                icon: UserPlus,
-                path: "/dashboard/new-patients",
-            }
-           
-        ],
-    },
-        {
-        title: "Staff",
-        links: [
-            {
-                label: "Staff",
-                icon: Users,
-                path: "/dashboard/Staff",
-            }
-
-           
-        ],
-    }, {
-        title: "Doctor",
-        links: [
-            {
-                label: "Doctor",
-             icon: BriefcaseMedical,
-                path: "/dashboard/doctors",
-            }
-
-           
-        ],
+                path: "/dashboard/Accounts",
+            }   
+        ],   
     },
     {
         title: "Management",
@@ -92,10 +63,15 @@ export const navbarLinks = [
                 label: "Insurance",
                 icon: ShieldCheck ,
                 path: "/dashboard/Insurance",
+            },
+            {
+                label: "Inventory",
+                icon: BriefcaseMedical ,
+                path: "/dashboard/Inventory",
             }
             
             
-          
+        
         ],
     },
     {

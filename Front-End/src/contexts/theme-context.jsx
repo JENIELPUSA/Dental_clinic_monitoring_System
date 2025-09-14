@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { AuthContext } from "@/contexts/AuthContext"; // adjust path as needed
 
 const initialState = {
-    theme: "system",
+    theme: "light",
     setTheme: () => null,
 };
 
@@ -11,7 +11,7 @@ export const ThemeProviderContext = createContext(initialState);
 
 export function ThemeProvider({
     children,
-    defaultTheme = "system",
+    defaultTheme = "light", // default light mode
     fallbackStorageKey = "vite-ui-theme",
     ...props
 }) {
@@ -20,14 +20,20 @@ export function ThemeProvider({
     const storageKey = userId ? `theme-${userId}` : fallbackStorageKey;
 
     const [theme, setTheme] = useState(() => {
-        return localStorage.getItem(storageKey) || defaultTheme;
+        // kunin muna sa localStorage kung meron
+        const storedTheme = localStorage.getItem(storageKey);
+        if (storedTheme) return storedTheme;
+        // default light mode kapag walang naka-store
+        return defaultTheme;
     });
 
     useEffect(() => {
         const root = window.document.documentElement;
+        // tanggalin lahat ng theme classes
         root.classList.remove("light", "dark");
 
         if (theme === "system") {
+            // kunin OS preference
             const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
             root.classList.add(systemTheme);
         } else {
