@@ -7,7 +7,7 @@ import brushingImage from "../../assets/imagehero1.jpg";
 import checkupImage from "../../assets/imagehero2.jpg";
 import clockImage from "../../assets/imagehero3.jpg";
 import healthyImage from "../../assets/imagehero4.jpg";
-import Dashboard from "../../assets/imagehero.jpg"
+import Dashboard from "../../assets/imagehero.JPG"
 
 const Benefits = () => {
   const [isVisible, setIsVisible] = useState(false);
