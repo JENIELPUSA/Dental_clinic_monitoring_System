@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router(); //express router
 const TreatmentController = require("./../Controller/TreatmentController");
 const authController = require("./../Controller/authController");
-
+const upload = require("../middleware/fileUploader");
 router
   .route("/")
-  .post(authController.protect, TreatmentController.createTreatment)
+  .post(authController.protect, upload.single("file"),TreatmentController.createTreatment)
   .get(authController.protect, TreatmentController.DisplayTreatment);
 
 router

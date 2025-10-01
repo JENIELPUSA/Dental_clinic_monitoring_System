@@ -1,21 +1,28 @@
+// components/AllPatientTable.jsx
 import { useContext, useState, useEffect } from "react";
 import { PatientDisplayContext } from "../../contexts/PatientContext/PatientContext";
 import { PencilIcon, TrashIcon, UserRoundPlus, User } from "lucide-react";
 import PatientFormModal from "./AddFormPatients";
 import Register from "../Login/Register";
 import StatusVerification from "../../ReusableFolder/StatusModal";
+import { TreatmentProgressContext } from "../../contexts/TreatmentProgressContext/TreatmentProgressContext";
+import TreatmentResultModal from "./TreatmentResultModal"; // 👈 New modal component
+
 const AllPatientTable = () => {
     const { patients, DeleteNewBorn } = useContext(PatientDisplayContext);
+    // We no longer need to manage treatmentResults state here — handled in modal
+
     const [searchTerm, setSearchTerm] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
     const [PatientSelect, setPatientSelect] = useState(null);
     const [isRegisterModal, setRegisterModal] = useState(false);
 
-    // Pagination state
+    const [treatmentResultModalOpen, setTreatmentResultModalOpen] = useState(false);
+    const [selectedPatientId, setSelectedPatientId] = useState(null);
+
     const [currentPage, setCurrentPage] = useState(1);
     const [isVerification, setVerification] = useState(false);
     const [isDeleteID, setIsDeleteId] = useState("");
-    const [loading, setLoading] = useState(false);
     const itemsPerPage = 5;
 
     const formatDate = (dateString) => {
@@ -24,7 +31,6 @@ const AllPatientTable = () => {
         return date.toLocaleDateString("en-US");
     };
 
-    // Filter patients based on search term
     const filteredPatients =
         patients?.filter((patient) => {
             if (!patient) {
@@ -46,28 +52,30 @@ const AllPatientTable = () => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentPatients = filteredPatients.slice(indexOfFirstItem, indexOfLastItem);
+
     const paginate = (pageNumber) => {
-        setCurrentPage(pageNumber);
+        if (pageNumber > 0 && pageNumber <= totalPages) {
+            setCurrentPage(pageNumber);
+        }
     };
 
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm]);
 
+    const handleRowClick = (patient) => {
+        setSelectedPatientId(patient._id);
+        setTreatmentResultModalOpen(true);
+    };
+
     const onPatientSelect = (patient) => {
         setModalOpen(true);
         setPatientSelect(patient);
     };
+
     const handleDeleteUser = (patientId) => {
-        try {
-            setLoading(true);
-            setIsDeleteId(patientId);
-            setVerification(true);
-        } catch (error) {
-            console.error("Delete failed", error);
-        } finally {
-            setLoading(false);
-        }
+        setIsDeleteId(patientId);
+        setVerification(true);
     };
 
     const handleConfirmDelete = async () => {
@@ -79,8 +87,13 @@ const AllPatientTable = () => {
         setVerification(false);
     };
 
-    const onAddPatient = async () => {
+    const onAddPatient = () => {
         setRegisterModal(true);
+    };
+
+    const closeTreatmentResultModal = () => {
+        setTreatmentResultModalOpen(false);
+        setSelectedPatientId(null);
     };
 
     return (
@@ -123,8 +136,11 @@ const AllPatientTable = () => {
                             <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
                                 <div className="flex items-center justify-center">
                                     <button
-                                        onClick={() => onAddPatient()} // Call the function here
-                                        className="rounded p-1.5 hover:bg-blue-500/10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:hover:bg-blue-300/10" // Add some styling for button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onAddPatient();
+                                        }}
+                                        className="rounded p-1.5 hover:bg-blue-500/10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:hover:bg-blue-300/10"
                                     >
                                         <UserRoundPlus className="h-4 w-4 stroke-blue-500 dark:stroke-blue-500" />
                                     </button>
@@ -137,7 +153,8 @@ const AllPatientTable = () => {
                             currentPatients.map((patient, index) => (
                                 <tr
                                     key={patient._id}
-                                    className="hover:bg-blue-50/50 dark:hover:bg-blue-900/20"
+                                    className="cursor-pointer hover:bg-blue-50/50 dark:hover:bg-blue-900/20"
+                                    onClick={() => handleRowClick(patient)}
                                 >
                                     <td className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-300">
                                         {indexOfFirstItem + index + 1}
@@ -145,7 +162,7 @@ const AllPatientTable = () => {
                                     <td className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-300">
                                         {patient.avatar ? (
                                             <img
-                                                src={`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/${patient.avatar.replace("\\", "/")}`} // Ensure forward slashes
+                                                src={`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/${patient.avatar.replace("\\", "/")}`}
                                                 alt={`${patient.first_name} ${patient.last_name} Avatar`}
                                                 className="h-10 w-10 rounded-full object-cover"
                                             />
@@ -183,13 +200,19 @@ const AllPatientTable = () => {
                                     <td className="bg-transparent p-3 align-top">
                                         <div className="flex gap-2">
                                             <button
-                                                onClick={() => onPatientSelect(patient)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onPatientSelect(patient);
+                                                }}
                                                 className="rounded bg-transparent p-1.5 text-blue-500 hover:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-300/10"
                                             >
                                                 <PencilIcon className="h-4 w-4 stroke-blue-500 dark:stroke-blue-300" />
                                             </button>
                                             <button
-                                                onClick={() => handleDeleteUser(patient._id)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteUser(patient._id);
+                                                }}
                                                 className="rounded bg-transparent p-1.5 text-red-500 hover:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-300/10"
                                             >
                                                 <TrashIcon className="h-4 w-4 stroke-red-500 dark:stroke-red-300" />
@@ -201,7 +224,7 @@ const AllPatientTable = () => {
                         ) : (
                             <tr>
                                 <td
-                                    colSpan="10"
+                                    colSpan="11"
                                     className="px-3 py-4 text-center text-blue-800 dark:text-blue-200"
                                 >
                                     No patients found
@@ -211,7 +234,6 @@ const AllPatientTable = () => {
                     </tbody>
                 </table>
 
-                {/* Pagination Controls */}
                 {filteredPatients.length > 0 && (
                     <div className="mt-4 flex flex-col items-center justify-between gap-2 sm:flex-row">
                         <div className="text-sm text-blue-800 dark:text-blue-200">
@@ -275,6 +297,8 @@ const AllPatientTable = () => {
                     </div>
                 )}
             </div>
+
+            {/* Modals */}
             <PatientFormModal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
@@ -286,10 +310,17 @@ const AllPatientTable = () => {
                 role="patient"
                 onClose={() => setRegisterModal(false)}
             />
+
             <StatusVerification
                 isOpen={isVerification}
                 onConfirmDelete={handleConfirmDelete}
                 onClose={handleCloseModal}
+            />
+
+            <TreatmentResultModal
+                isOpen={treatmentResultModalOpen}
+                onClose={closeTreatmentResultModal}
+                patientId={selectedPatientId}
             />
         </div>
     );

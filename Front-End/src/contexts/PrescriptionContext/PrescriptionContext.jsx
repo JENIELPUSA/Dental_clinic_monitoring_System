@@ -14,6 +14,7 @@ export const PrescriptionDisplayProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const [customError, setCustomError] = useState("");
     const [showModal, setShowModal] = useState(false);
+    const [pdfBlob, setPdfBlob] = useState(null);
     const [modalStatus, setModalStatus] = useState("success");
     useEffect(() => {
         if (!authToken) {
@@ -52,16 +53,23 @@ export const PrescriptionDisplayProvider = ({ children }) => {
     };
 
     const AddPrescription = async (values) => {
+        console.log("values before POST", values);
+
         try {
             const res = await axiosInstance.post(
                 `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Prescription`,
                 {
                     appointment_id: values.appointment_id || "",
-                    dosage: values.dosage || "",
-                    end_date: values.end_date || "",
-                    frequency: values.frequency || "",
-                    medication_name: values.medication_name || "",
-                    start_date: values.start_date || "",
+                    medications:
+                        values.medications?.map((med) => ({
+                            medication_name: med.medication_name || "",
+                            dosage: med.dosage || "",
+                            frequency: med.frequency || "",
+                            start_date: med.start_date ? new Date(med.start_date).toISOString() : "",
+                            end_date: med.end_date ? new Date(med.end_date).toISOString() : "",
+                        })) || [],
+
+                    fileUrl: values.fileUrl || null,
                 },
                 {
                     headers: { Authorization: `Bearer ${authToken}` },
@@ -70,18 +78,17 @@ export const PrescriptionDisplayProvider = ({ children }) => {
 
             if (res.data.status === "success") {
                 let newPrescriptionData = res.data.data;
-                setPrescription((prevPrescription) => [...prevPrescription, newPrescriptionData]);
+                setPrescription((prev) => [...prev, newPrescriptionData]);
                 setModalStatus("success");
                 setShowModal(true);
             } else {
                 setModalStatus("failed");
                 setShowModal(true);
                 toast.error("Unexpected response from server.");
-                return { success: false, error: "Unexpected response from server." };
             }
         } catch (error) {
             let message = "Something went wrong.";
-            if (error.response && error.response.data) {
+            if (error.response?.data) {
                 const errorData = error.response.data;
                 message = typeof errorData === "string" ? errorData : errorData.message || errorData.error || message;
             } else if (error.request) {
@@ -113,6 +120,40 @@ export const PrescriptionDisplayProvider = ({ children }) => {
         } catch (error) {
             console.error("Error deleting user:", error);
             toast.error(error.response?.data?.message || "Failed to delete user.");
+        }
+    };
+
+    const fetchPrescriptionPDF = async (id) => {
+        if (!id) return null;
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.error("Authentication token not found.");
+            return null;
+        }
+
+        // Buuin ang URL para sa API endpoint
+        const url = `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Prescription/prescription/${id}`;
+
+        try {
+            const res = await axios.get(url, {
+                responseType: "blob", // Hinihingi ang response bilang isang Blob (para sa file/PDF)
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            // I-verify na ang nakuha ay isang PDF (optional check)
+            if (res.data.type !== "application/pdf") {
+                console.error("Received data is not a PDF type:", res.data.type);
+                return null;
+            }
+
+            return res.data; // Ito na ang PDF Blob
+        } catch (error) {
+            // Handling ng error
+            console.error("Axios fetch error:", error.response?.statusText || error.message);
+            return null;
         }
     };
 
@@ -165,6 +206,7 @@ export const PrescriptionDisplayProvider = ({ children }) => {
                 AddPrescription,
                 DeletePrescription,
                 UpdatePrescription,
+                fetchPrescriptionPDF,
             }}
         >
             {children}

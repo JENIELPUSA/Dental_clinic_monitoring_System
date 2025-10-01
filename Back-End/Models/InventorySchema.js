@@ -15,10 +15,6 @@ const InventorySchema = new mongoose.Schema({
     type: String,
     default: "Generic",
   },
-  supplier: {
-    type: String,
-    default: "N/A",
-  },
   stockQuantity: {
     type: Number,
     required: true,

@@ -10,6 +10,8 @@ router.route('/')
 router.route('/:id')
     .patch(authController.protect,PrescriptionController.updatePrescription)
      .delete(authController.protect,PrescriptionController.deletePrescription)
+router.route("/prescription/:id")
+  .get(authController.protect,PrescriptionController.DisplaySpecificPrescription)
 
 
 module.exports=router

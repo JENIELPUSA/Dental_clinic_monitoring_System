@@ -19,6 +19,8 @@ const Appointment = require("./Routes/AppointmentRoute");
 
 const DentalHistory = require("./Routes/Dental_History_route");
 
+const result = require("./Routes/treatmentResultRoutes")
+
 const Insurance = require("./Routes/InsuranceRoute");
 
 const Bill = require("./Routes/BillRoute");
@@ -48,6 +50,9 @@ const logger = function (req, res, next) {
   console.log("Middleware Called");
   next();
 };
+
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use(express.json());
 app.set("trust proxy", true);
@@ -104,6 +109,10 @@ app.use("/api/v1/Staff", Staff);
 app.use("/api/v1/InventoryCategory", Category);
 app.use("/api/v1/Inventory", inventory);
 app.use("/api/v1/Release", release);
+app.use("/api/v1/Result", result);
+
+
+
 
 
 app.use(ErrorController);

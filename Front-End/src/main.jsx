@@ -23,48 +23,51 @@ import { InventoryProvider } from "./contexts/InventoryContext/InventoryContext.
 import { CategoryProvider } from "./contexts/CategoryContext.jsx";
 import AxiosInterceptor from "./component/AxiosInterceptor.jsx";
 import { ReleaseHistoryProvider } from "./contexts/ReleaseHistoryContext/ReleaseHistoryContext.jsx";
+import { TreatmentProgressProvider } from "./contexts/TreatmentProgressContext/TreatmentProgressContext.jsx";
 createRoot(document.getElementById("root")).render(
     //<StrictMode>
     <AuthProvider>
-        <ReleaseHistoryProvider>
-            <CategoryProvider>
-                <InventoryProvider>
-                    <StaffDisplayProvider>
-                        <UpdateDisplayProvider>
-                            <TaskDisplayProvider>
-                                <DentalHistoryProvider>
-                                    <LogsDisplayProvider>
-                                        <NotificationDisplayProvider>
-                                            <InsuranceDisplayProvider>
-                                                <TreatmentDisplayProvider>
-                                                    <BillDisplayProvider>
-                                                        <PrescriptionDisplayProvider>
-                                                            <UserDisplayProvider>
-                                                                <SchedDisplayProvider>
-                                                                    <AppointmentDisplayProvider>
-                                                                        <DoctorDisplayProvider>
-                                                                            <PatientDisplayProvider>
-                                                                                <SocketListener />
-                                                                                <App />
-                                                                                <AxiosInterceptor />
-                                                                            </PatientDisplayProvider>
-                                                                        </DoctorDisplayProvider>
-                                                                    </AppointmentDisplayProvider>
-                                                                </SchedDisplayProvider>
-                                                            </UserDisplayProvider>
-                                                        </PrescriptionDisplayProvider>
-                                                    </BillDisplayProvider>
-                                                </TreatmentDisplayProvider>
-                                            </InsuranceDisplayProvider>
-                                        </NotificationDisplayProvider>
-                                    </LogsDisplayProvider>
-                                </DentalHistoryProvider>
-                            </TaskDisplayProvider>
-                        </UpdateDisplayProvider>
-                    </StaffDisplayProvider>
-                </InventoryProvider>
-            </CategoryProvider>
-        </ReleaseHistoryProvider>
+        <TreatmentProgressProvider>
+            <ReleaseHistoryProvider>
+                <CategoryProvider>
+                    <InventoryProvider>
+                        <StaffDisplayProvider>
+                            <UpdateDisplayProvider>
+                                <TaskDisplayProvider>
+                                    <DentalHistoryProvider>
+                                        <LogsDisplayProvider>
+                                            <NotificationDisplayProvider>
+                                                <InsuranceDisplayProvider>
+                                                    <TreatmentDisplayProvider>
+                                                        <BillDisplayProvider>
+                                                            <PrescriptionDisplayProvider>
+                                                                <UserDisplayProvider>
+                                                                    <SchedDisplayProvider>
+                                                                        <AppointmentDisplayProvider>
+                                                                            <DoctorDisplayProvider>
+                                                                                <PatientDisplayProvider>
+                                                                                    <SocketListener />
+                                                                                    <App />
+                                                                                    <AxiosInterceptor />
+                                                                                </PatientDisplayProvider>
+                                                                            </DoctorDisplayProvider>
+                                                                        </AppointmentDisplayProvider>
+                                                                    </SchedDisplayProvider>
+                                                                </UserDisplayProvider>
+                                                            </PrescriptionDisplayProvider>
+                                                        </BillDisplayProvider>
+                                                    </TreatmentDisplayProvider>
+                                                </InsuranceDisplayProvider>
+                                            </NotificationDisplayProvider>
+                                        </LogsDisplayProvider>
+                                    </DentalHistoryProvider>
+                                </TaskDisplayProvider>
+                            </UpdateDisplayProvider>
+                        </StaffDisplayProvider>
+                    </InventoryProvider>
+                </CategoryProvider>
+            </ReleaseHistoryProvider>
+        </TreatmentProgressProvider>
     </AuthProvider>,
     //</StrictMode>,
 );

@@ -8,28 +8,28 @@ import axiosInstance from "../../ReusableFolder/axiosInstance";
 export const TreatmentDisplayContext = createContext();
 
 export const TreatmentDisplayProvider = ({ children }) => {
-    const { authToken,linkId } = useContext(AuthContext);
+    const { authToken, linkId } = useContext(AuthContext);
     const [Treatment, setTreatment] = useState([]);
-    const [isSpecifyTreatment,setSpicifyTreatment]=useState([])
+    const [isSpecifyTreatment, setSpicifyTreatment] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [customError, setCustomError] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [modalStatus, setModalStatus] = useState("success");
     const AddSocketTreatment = () => {
-       fetchTreatment();
+        fetchTreatment();
     };
 
     useEffect(() => {
         if (!authToken) {
-            setTreatment([]);0
+            setTreatment([]);
+            0;
             setLoading(false);
             return;
         }
 
         fetchTreatment();
         fetchSpecificTreatment();
-        
     }, [authToken]);
     useEffect(() => {
         if (customError) {
@@ -57,8 +57,6 @@ export const TreatmentDisplayProvider = ({ children }) => {
         }
     };
 
-
-
     const fetchSpecificTreatment = async (Id) => {
         if (!Id || !authToken) return;
 
@@ -78,15 +76,11 @@ export const TreatmentDisplayProvider = ({ children }) => {
     };
 
     const AddTreatment = async (values) => {
+        console.log("values", values);
         try {
             const res = await axiosInstance.post(
                 `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Treatment`,
-                {
-                    appointment_id: values.appointment_id || "",
-                    treatment_description: values.treatment_description || "",
-                    treatment_date: values.treatment_date || "",
-                    treatment_cost: values.treatment_cost || "",
-                },
+                values ,
                 {
                     headers: { Authorization: `Bearer ${authToken}` },
                 },
@@ -137,22 +131,21 @@ export const TreatmentDisplayProvider = ({ children }) => {
         }
     };
 
-
     const UpdateTreatment = async (dataId, payload) => {
         try {
             const response = await axiosInstance.patch(
                 `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Treatment/${dataId}`,
-                { 
+                {
                     appointment_id: payload.appointment_id,
-                    treatment_cost:payload.treatment_cost,
-                    treatment_date:payload.treatment_date,
-                    treatment_description:payload.treatment_description
+                    treatment_cost: payload.treatment_cost,
+                    treatment_date: payload.treatment_date,
+                    treatment_description: payload.treatment_description,
                 },
                 { headers: { Authorization: `Bearer ${authToken}` } },
             );
 
             if (response.data && response.data.status === "success") {
-                const updatedItem = response.data.data; 
+                const updatedItem = response.data.data;
 
                 if (updatedItem && updatedItem._id) {
                     setTreatment((prev) => prev.map((u) => (u._id === updatedItem._id ? { ...u, ...updatedItem } : u)));
@@ -188,7 +181,9 @@ export const TreatmentDisplayProvider = ({ children }) => {
                 AddTreatment,
                 DeleteTreatment,
                 UpdateTreatment,
-                fetchSpecificTreatment,isSpecifyTreatment,AddSocketTreatment
+                fetchSpecificTreatment,
+                isSpecifyTreatment,
+                AddSocketTreatment,
             }}
         >
             {children}

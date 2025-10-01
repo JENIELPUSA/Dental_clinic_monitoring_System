@@ -1,10 +1,14 @@
 const mongoose = require("mongoose");
 const AsyncErrorHandler = require("../Utils/AsyncErrorHandler");
 const Treatment = require("../Models/Treatments");
-const Appointment=require("../Models/appointmentSchema")
+const Appointment = require("../Models/appointmentSchema");
 const CustomError = require("../Utils/CustomError");
-const User = require("./../Models/LogInDentalSchema");
-const { sendTreatmentNotification } = require("./../Controller/Services/TreatmentSocketServices");
+const cloudinary = require("../Utils/cloudinary")
+const TreatmentResult = require("../Models/Before&after"); 
+const {
+  sendTreatmentNotification,
+} = require("./../Controller/Services/TreatmentSocketServices");
+
 
 exports.createTreatment = AsyncErrorHandler(async (req, res) => {
   const {
@@ -12,6 +16,9 @@ exports.createTreatment = AsyncErrorHandler(async (req, res) => {
     treatment_description,
     treatment_date,
     treatment_cost,
+    overallNotes,
+    resultType,
+    progress = [],
   } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(appointment_id)) {
@@ -29,6 +36,7 @@ exports.createTreatment = AsyncErrorHandler(async (req, res) => {
     });
   }
 
+  // 1️⃣ Save Treatment
   const newTreatment = await Treatment.create({
     appointment_id,
     treatment_description,
@@ -36,6 +44,61 @@ exports.createTreatment = AsyncErrorHandler(async (req, res) => {
     treatment_cost,
   });
 
+  // 2️⃣ Process progress with Cloudinary uploads
+  const processedProgress = [];
+  for (const item of progress) {
+    let beforeImg = null;
+    let afterImg = null;
+
+    if (item.beforeImageBase64) {
+      const uploadedBefore = await cloudinary.uploader.upload(
+        item.beforeImageBase64,
+        { folder: "treatments/progress/before" }
+      );
+      beforeImg = {
+        url: uploadedBefore.secure_url,
+        public_id: uploadedBefore.public_id,
+        notes: item.beforeNotes || "",
+      };
+    }
+
+    if (item.afterImageBase64) {
+      const uploadedAfter = await cloudinary.uploader.upload(
+        item.afterImageBase64,
+        { folder: "treatments/progress/after" }
+      );
+      afterImg = {
+        url: uploadedAfter.secure_url,
+        public_id: uploadedAfter.public_id,
+        notes: item.afterNotes || "",
+      };
+    }
+
+    // ✅ Push lang kung may at least before/after image
+    if (beforeImg || afterImg) {
+      processedProgress.push({
+        beforeImage: beforeImg,
+        afterImage: afterImg,
+        description: item.description || "",
+        stage: item.stage || "",
+      });
+    }
+  }
+
+  // 3️⃣ Save TreatmentResult kung may BOTH resultType at processedProgress
+  let treatmentResult = null;
+
+  if (resultType && processedProgress.length > 0) {
+    treatmentResult = await TreatmentResult.create({
+      patient: appointment.patient_id,
+      treatment: newTreatment._id,
+      resultType,
+      overallNotes: overallNotes || "",
+      progress: processedProgress,
+    });
+  }
+
+  // 4️⃣ Enrich data for frontend
   const enriched = await Treatment.aggregate([
     { $match: { _id: newTreatment._id } },
     {
@@ -75,15 +138,23 @@ exports.createTreatment = AsyncErrorHandler(async (req, res) => {
     },
   ]);
 
+  // 5️⃣ Send socket notification
   const io = req.app.get("io");
   sendTreatmentNotification(io, enriched[0]);
-    io.emit("new-treatment", enriched[0]);
+  io.emit("new-treatment", enriched[0]);
 
   res.status(201).json({
     status: "success",
-    data: enriched[0],
+    data: {
+      treatment: enriched[0],
+      treatmentResult: treatmentResult || null, // null kung walang na-create
+    },
   });
 });
+
+
+
+
 exports.DisplayTreatment = AsyncErrorHandler(async (req, res) => {
   const results = await Treatment.aggregate([
     {
@@ -123,7 +194,8 @@ exports.DisplayTreatment = AsyncErrorHandler(async (req, res) => {
         treatment_description: 1,
         treatment_date: 1,
         treatment_cost: 1,
-        appointment_id: 1,done:1,
+        appointment_id: 1,
+        done: 1,
         patient_id: "$Appointment_info.patient_id", // <- Add this to include patient_id
         patient_name: {
           $cond: {
@@ -262,7 +334,7 @@ exports.deleteTreatment = AsyncErrorHandler(async (req, res, next) => {
 exports.DisplayTreatmentByPatientId = AsyncErrorHandler(async (req, res) => {
   const { id: patientId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(patientId)) {
+  if (!mongoose.Types.ObjectId.isValid(patientId)) {
     return res.status(400).json({
       status: "error",
       message: "Invalid Patient ID format. Please provide a valid ObjectId.",
@@ -281,7 +353,7 @@ exports.DisplayTreatmentByPatientId = AsyncErrorHandler(async (req, res) => {
     {
       $unwind: { path: "$Appointment_info", preserveNullAndEmptyArrays: true },
     },
-    // ✅ Filter only treatments with matching patient_id
+
     {
       $match: {
         "Appointment_info.patient_id": new mongoose.Types.ObjectId(patientId),
@@ -342,4 +414,3 @@ exports.DisplayTreatmentByPatientId = AsyncErrorHandler(async (req, res) => {
     data: results,
   });
 });
-
