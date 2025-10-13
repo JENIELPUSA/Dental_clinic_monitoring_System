@@ -1,21 +1,9 @@
+// components/AppointmentTable.jsx
 import React, { useContext, useState, useEffect } from "react";
 import { AppointmentDisplayContext } from "../../contexts/AppointmentContext/appointmentContext";
 import { Ban, CalendarCheck, CircleCheckBig, User, FileDown, Trash } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
-// Tinanggal: import LoadingOverlay
 import StatusVerification from "../../ReusableFolder/StatusModal";
-
-// ✅ Skeleton Row Component (Pulse Animation)
-const SkeletonRow = () => (
-  <tr className="animate-pulse border-b border-blue-100 dark:border-blue-800/30">
-    {/* 12 columns to match your table */}
-    {[...Array(12)].map((_, i) => (
-      <td key={i} className="border px-3 py-3">
-        <div className="h-4 w-full rounded bg-blue-100 dark:bg-blue-800/40"></div>
-      </td>
-    ))}
-  </tr>
-);
 
 const AppointmentTable = () => {
     const { linkId, role } = useContext(AuthContext);
@@ -30,7 +18,8 @@ const AppointmentTable = () => {
         currentPage,
         fetchAppointmentData,
         TotalAppointment,
-        loading,setCurrentPage
+        loading,
+        setCurrentPage
     } = useContext(AppointmentDisplayContext);
 
     const [searchFilters, setSearchFilters] = useState({
@@ -92,7 +81,6 @@ const AppointmentTable = () => {
     };
 
     const handleCancelAppointment = async (Id) => {
-        // Optional: add local loading if needed, but context loading is enough
         await UpdateStatus(Id, "Cancelled");
     };
 
@@ -138,8 +126,6 @@ const AppointmentTable = () => {
 
     return (
         <div className="w-full rounded-2xl bg-white p-6 shadow-md dark:border dark:border-blue-800/50 dark:bg-blue-900/20">
-            {/* ✅ Removed: {loading && <LoadingOverlay />} */}
-
             <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <h2 className="text-xl font-bold text-blue-800 dark:text-blue-200">Appointment List</h2>
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-4">
@@ -205,16 +191,7 @@ const AppointmentTable = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? (
-                            // ✅ Show 5 skeleton rows while loading
-                            <>
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                            </>
-                        ) : appointmentList.length > 0 ? (
+                        {appointmentList.length > 0 ? (
                             appointmentList.map((app, index) => (
                                 <tr
                                     key={app._id || `appointment-${index}`}
@@ -227,7 +204,6 @@ const AppointmentTable = () => {
                                     <td className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-300">
                                         <User className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
                                         {`${app.patient_info.first_name || "N/A"} ${app.patient_info.last_name || "N/A"} `}
-                                        (<span className="text-xs text-gray-500 dark:text-gray-400">{app.patient_id}</span>)
                                     </td>
                                     <td className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-300">
                                         {app.patient_info.address || "N/A"}
@@ -317,7 +293,7 @@ const AppointmentTable = () => {
                                     colSpan="11"
                                     className="px-3 py-4 text-center text-blue-800 dark:text-blue-200"
                                 >
-                                    No appointments found.
+                                    {loading ? "Loading..." : "No appointments found."}
                                 </td>
                             </tr>
                         )}

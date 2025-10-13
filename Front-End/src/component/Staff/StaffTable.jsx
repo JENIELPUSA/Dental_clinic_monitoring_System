@@ -6,17 +6,6 @@ import StaffFormModal from "./StaffFormModal";
 import Register from "../Login/Register";
 import StatusVerification from "../../ReusableFolder/StatusModal";
 
-// Skeleton Row
-const SkeletonRow = () => (
-  <tr className="animate-pulse border-b border-blue-100 dark:border-blue-800/30">
-    {[...Array(6)].map((_, i) => (
-      <td key={i} className="border px-3 py-3">
-        <div className="h-4 w-full rounded bg-blue-100 dark:bg-blue-800/40"></div>
-      </td>
-    ))}
-  </tr>
-);
-
 const StaffTable = () => {
     const {
         isStaff = [],
@@ -38,13 +27,11 @@ const StaffTable = () => {
     const [isDeleteID, setIsDeleteId] = useState("");
     const itemsPerPage = 5;
 
-    // Format date if needed (not used here, but kept for consistency)
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
         const date = new Date(dateString);
         return date.toLocaleDateString("en-US");
     };
-
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -58,7 +45,6 @@ const StaffTable = () => {
             fetchStaff({ page: 1 });
         }
     }, []);
-
 
     const goToPage = (page) => {
         if (page >= 1 && page <= isTotalPages) {
@@ -155,15 +141,7 @@ const StaffTable = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? (
-                            <>
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                            </>
-                        ) : isStaff.length > 0 ? (
+                        {isStaff.length > 0 ? (
                             isStaff.map((data, index) => (
                                 <tr
                                     key={data._id}
@@ -217,7 +195,7 @@ const StaffTable = () => {
                         ) : (
                             <tr>
                                 <td colSpan="6" className="px-3 py-6 text-center text-blue-800 dark:text-blue-200">
-                                    No staff data found.
+                                    {loading ? "Loading..." : "No staff data found."}
                                 </td>
                             </tr>
                         )}

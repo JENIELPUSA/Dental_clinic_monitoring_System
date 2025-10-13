@@ -8,17 +8,6 @@ import StatusVerification from "../../ReusableFolder/StatusModal";
 import TreatmentResultModal from "./TreatmentResultModal";
 import { AuthContext } from "../../contexts/AuthContext";
 
-// Skeleton Row
-const SkeletonRow = () => (
-  <tr className="animate-pulse border-b border-blue-100 dark:border-blue-800/30">
-    {[...Array(11)].map((_, i) => (
-      <td key={i} className="border px-3 py-3">
-        <div className="h-4 w-full rounded bg-blue-100 dark:bg-blue-800/40"></div>
-      </td>
-    ))}
-  </tr>
-);
-
 const AllPatientTable = () => {
     const { role } = useContext(AuthContext);
     const {
@@ -163,15 +152,7 @@ const AllPatientTable = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? (
-                            <>
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                            </>
-                        ) : patients.length > 0 ? (
+                        {patients.length > 0 ? (
                             patients.map((patient, index) => (
                                 <tr
                                     key={patient._id}
@@ -249,7 +230,7 @@ const AllPatientTable = () => {
                         ) : (
                             <tr>
                                 <td colSpan="11" className="px-3 py-6 text-center text-blue-800 dark:text-blue-200">
-                                    No patients found
+                                    {loading ? "Loading..." : "No patients found"}
                                 </td>
                             </tr>
                         )}

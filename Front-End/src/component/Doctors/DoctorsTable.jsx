@@ -1,3 +1,4 @@
+// components/DoctorTable.jsx
 import { useContext, useState, useEffect } from "react";
 import { DoctorDisplayContext } from "../../contexts/DoctorContext/doctorContext";
 import { PencilIcon, TrashIcon, CalendarCheck, UserRoundPlus, User } from "lucide-react";
@@ -6,17 +7,6 @@ import Schdedule from "../Schedule/Schedule";
 import Register from "../Login/Register";
 import StatusVerification from "../../ReusableFolder/StatusModal";
 import { AuthContext } from "../../contexts/AuthContext";
-
-// Skeleton Row Component
-const SkeletonRow = () => (
-  <tr className="animate-pulse border-b border-blue-100 dark:border-blue-800/30">
-    {[...Array(7)].map((_, i) => (
-      <td key={i} className="border px-3 py-3">
-        <div className="h-4 w-full rounded bg-blue-100 dark:bg-blue-800/40"></div>
-      </td>
-    ))}
-  </tr>
-);
 
 const DoctorTable = () => {
     const { role } = useContext(AuthContext);
@@ -161,16 +151,7 @@ const DoctorTable = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? (
-                            // Skeleton Loading
-                            <>
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
-                            </>
-                        ) : doctor.length > 0 ? (
+                        {doctor.length > 0 ? (
                             doctor.map((dr, index) => (
                                 <tr
                                     key={dr._id || `doctor-${index}`}
@@ -240,7 +221,7 @@ const DoctorTable = () => {
                         ) : (
                             <tr>
                                 <td colSpan="7" className="px-3 py-6 text-center text-blue-800 dark:text-blue-200">
-                                    No doctors found
+                                    {loading ? "Loading..." : "No doctors found"}
                                 </td>
                             </tr>
                         )}

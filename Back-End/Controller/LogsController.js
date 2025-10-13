@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const AsyncErrorHandler = require("../Utils/AsyncErrorHandler");
 
 exports.displayAuditLogs = AsyncErrorHandler(async (req, res) => {
-  const { search = "", from, to, limit = 10, page = 1, action_type } = req.query;
+  const { search = "", from, to, limit = 8, page = 1, action_type } = req.query;
   const skip = (parseInt(page) - 1) * parseInt(limit);
   const matchStage = {};
   if (from || to) {
