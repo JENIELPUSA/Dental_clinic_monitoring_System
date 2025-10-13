@@ -482,7 +482,7 @@ export default function Schedule({ isOpen, onClose, selectedDoctorId, doctorName
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 bg-black/40 backdrop-blur-md flex justify-center items-center p-4 z-50"
+      className="fixed inset-0 bg-black/40 backdrop-blur-md flex justify-center items-center p-4 z-[999]"
     >
       <motion.div
         initial={{ y: "-100vh" }}

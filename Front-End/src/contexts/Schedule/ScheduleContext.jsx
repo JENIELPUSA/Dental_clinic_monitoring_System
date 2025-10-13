@@ -16,30 +16,40 @@ export const SchedDisplayProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [modalStatus, setModalStatus] = useState("success");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isTotalPages, setTotalPages] = useState();
+    const [TotalSchedule, setTotalSchedule] = useState();
 
-    const fetchSchedData = useCallback(async () => {
-        setLoading(true);
-        try {
-            const res = await axiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Schedule`, {
-                withCredentials: true,
-            });
+    const fetchSchedData = useCallback(
+        async (queryParams = {}) => {
+            setLoading(true);
+            try {
+                const res = await axiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Schedule`, {
+                    withCredentials: true,
+                    params: queryParams,
+                });
 
-            const schedules = res?.data.data;
-            if (role === "doctor") {
-                const filtered = schedules.filter((sched) => sched.doctorId === linkId);
-                setSchedDoctors(filtered);
-                setSchedDoctorsSched(filtered);
-            } else {
-                setSchedDoctors(schedules);
-                setSchedDoctorsSched(schedules);
+                const schedules = res?.data.data;
+                if (role === "doctor") {
+                    const filtered = schedules.filter((sched) => sched.doctorId === linkId);
+                    setSchedDoctors(filtered);
+                    setSchedDoctorsSched(filtered);
+                } else {
+                    setSchedDoctors(schedules);
+                    setSchedDoctorsSched(schedules);
+                    setTotalPages(res.data.totalPages || 0);
+                    setCurrentPage(res.data.currentPage || 1);
+                    setTotalSchedule(res.data.totalCount || 0);
+                }
+            } catch (error) {
+                console.error("Error fetching schedule data:", error);
+                setError("Failed to fetch schedule data");
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            console.error("Error fetching schedule data:", error);
-            setError("Failed to fetch schedule data");
-        } finally {
-            setLoading(false);
-        }
-    }, [authToken, linkId, role]);
+        },
+        [authToken, linkId, role],
+    );
 
     useEffect(() => {
         fetchSchedData();
@@ -227,6 +237,11 @@ export const SchedDisplayProvider = ({ children }) => {
                 AddSchedule,
                 updateStatusSocketData,
                 fetchSchedData,
+                currentPage,
+                setCurrentPage,
+                TotalSchedule,
+                isTotalPages,
+                loading,
             }}
         >
             {children}

@@ -22,8 +22,6 @@ const InventorySchema = new mongoose.Schema({
   },
   unit: {
     type: String,
-    enum: ["pcs", "box", "pack", "bottle", "set", "kit"],
-    default: "pcs",
   },
   expirationDate: {
     type: Date, // for consumables/meds

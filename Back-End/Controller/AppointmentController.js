@@ -11,7 +11,8 @@ const {
   findValidScheduleAndSlot,
   createAppointmentEntry,
   sendSocketNotification,
-  notifyByEmailAndDatabase,returnSlotOnCancel
+  notifyByEmailAndDatabase,
+  returnSlotOnCancel,
 } = require("../Controller/Services/AppointmentService");
 
 exports.createAppointment = AsyncErrorHandler(async (req, res) => {
@@ -83,43 +84,113 @@ exports.createAppointment = AsyncErrorHandler(async (req, res) => {
 });
 
 exports.DisplayAppointment = AsyncErrorHandler(async (req, res) => {
-  try {
-    const appointments = await Appointment.aggregate([
-      {
-        $lookup: {
-          from: "patients",
-          localField: "patient_id",
-          foreignField: "_id",
-          as: "patient_info",
-        },
-      },
-      {
-        $lookup: {
-          from: "doctors",
-          localField: "doctor_id",
-          foreignField: "_id",
-          as: "doctor_info",
-        },
-      },
-      {
-        $unwind: { path: "$patient_info", preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: "$doctor_info", preserveNullAndEmptyArrays: true },
-      },
-    ]);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+  const { search = "", From, To } = req.query;
 
-    return res.status(200).json({
-      status: "Success",
-      data: appointments,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      status: "Error",
-      message: error.message,
-    });
+  const matchStage = {};
+  const hasFrom = From && From.trim() !== "";
+  const hasTo = To && To.trim() !== "";
+
+  if (hasFrom || hasTo) {
+    matchStage.appointment_date = {};
+    if (hasFrom) matchStage.appointment_date.$gte = new Date(From);
+    if (hasTo) {
+      const endDate = new Date(To);
+      endDate.setDate(endDate.getDate() + 1);
+      matchStage.appointment_date.$lt = endDate;
+    }
   }
+
+  const pipeline = [
+    {
+      $lookup: {
+        from: "patients",
+        localField: "patient_id",
+        foreignField: "_id",
+        as: "patient_info",
+      },
+    },
+    {
+      $lookup: {
+        from: "doctors",
+        localField: "doctor_id",
+        foreignField: "_id",
+        as: "doctor_info",
+      },
+    },
+    { $unwind: { path: "$patient_info", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$doctor_info", preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        patient_name: {
+          $concat: [
+            { $ifNull: ["$patient_info.first_name", ""] },
+            " ",
+            { $ifNull: ["$patient_info.last_name", ""] },
+          ],
+        },
+        doctor_name: {
+          $concat: [
+            { $ifNull: ["$doctor_info.first_name", ""] },
+            " ",
+            { $ifNull: ["$doctor_info.last_name", ""] },
+          ],
+        },
+      },
+    },
+    {
+      $match: {
+        ...matchStage,
+        ...(search.trim()
+          ? {
+              $or: [
+                { patient_name: { $regex: new RegExp(search.trim(), "i") } },
+                { doctor_name: { $regex: new RegExp(search.trim(), "i") } },
+              ],
+            }
+          : {}),
+      },
+    },
+    { $sort: { appointment_date: -1 } },
+    {
+      $project: {
+        _id: 1,
+        appointment_date: 1,
+        slot_id: 1,
+        start_time: 1,
+        end_time: 1,
+        appointment_status: 1,
+        patient_info: 1,
+        doctor_info: 1,
+        patient_name: 1,
+        doctor_name: 1,
+        created_at: 1,
+      },
+    },
+    {
+      $facet: {
+        data: [{ $skip: skip }, { $limit: limit }],
+        totalCount: [{ $count: "count" }],
+      },
+    },
+  ];
+
+  const results = await Appointment.aggregate(pipeline);
+
+  const data = results[0].data;
+  const totalAppointments = results[0].totalCount[0]?.count || 0;
+
+  res.status(200).json({
+    status: "success",
+    data,
+    totalAppointments,
+    currentPage: page,
+    totalPages: Math.ceil(totalAppointments / limit),
+  });
 });
+
 
 exports.GetSpecificAppointment = AsyncErrorHandler(async (req, res) => {
   try {
@@ -367,76 +438,75 @@ exports.UpdateStatus = AsyncErrorHandler(async (req, res, next) => {
     }
   }
 
- if (status === "Cancelled") {
-  // ✅ Step 3.1: Ibalik ang slot
-  try {
-    await returnSlotOnCancel(
-      updatedAppointment.doctor_id,
-      updatedAppointment.appointment_date,
-      updatedAppointment.slot_id
-    );
-    console.log("✔️ Slot returned successfully.");
-  } catch (err) {
-    console.error("❌ Failed to return slot:", err.message);
-  }
+  if (status === "Cancelled") {
+    // ✅ Step 3.1: Ibalik ang slot
+    try {
+      await returnSlotOnCancel(
+        updatedAppointment.doctor_id,
+        updatedAppointment.appointment_date,
+        updatedAppointment.slot_id
+      );
+      console.log("✔️ Slot returned successfully.");
+    } catch (err) {
+      console.error("❌ Failed to return slot:", err.message);
+    }
 
-  // ✅ Step 3.2: Proceed with notifications
-  const message = {
-    message: `An appointment has been canceled. Appointment ID: ${updatedAppointment._id}`,
-    data: detailedAppointment,
-  };
+    // ✅ Step 3.2: Proceed with notifications
+    const message = {
+      message: `An appointment has been canceled. Appointment ID: ${updatedAppointment._id}`,
+      data: detailedAppointment,
+    };
 
-  const allowedUsers = await User.find({
-    $or: [{ role: { $in: ["admin", "staff"] } }, { _id: doctorId }],
-  }).select("_id username role");
+    const allowedUsers = await User.find({
+      $or: [{ role: { $in: ["admin", "staff"] } }, { _id: doctorId }],
+    }).select("_id username role");
 
-  const viewerIds = allowedUsers.map((u) => u._id.toString());
-  const emailList = allowedUsers.map((u) => u.username);
+    const viewerIds = allowedUsers.map((u) => u._id.toString());
+    const emailList = allowedUsers.map((u) => u.username);
 
-  let anyOnline = false;
+    let anyOnline = false;
 
-  if (io) {
-    for (const linkId in global.connectedUsers) {
-      const { socketId, role } = global.connectedUsers[linkId];
-      if (role === "admin" || role === "staff" || linkId === doctorId) {
-        io.to(socketId).emit("adminNotification", message);
-        console.log(`📣 Sent cancellation notice to ${role} (${linkId})`);
-        anyOnline = true;
+    if (io) {
+      for (const linkId in global.connectedUsers) {
+        const { socketId, role } = global.connectedUsers[linkId];
+        if (role === "admin" || role === "staff" || linkId === doctorId) {
+          io.to(socketId).emit("adminNotification", message);
+          console.log(`📣 Sent cancellation notice to ${role} (${linkId})`);
+          anyOnline = true;
+        }
       }
     }
-  }
 
-  if (!anyOnline) {
-    console.log("⚠️ No active sockets. Saving notification to DB...");
-  }
+    if (!anyOnline) {
+      console.log("⚠️ No active sockets. Saving notification to DB...");
+    }
 
-  await Notification.create({
-    message: "An appointment has been canceled.",
-    viewers: viewerIds.map((id) => ({
-      user: new mongoose.Types.ObjectId(id),
-      isRead: false,
-      viewedAt: null,
-    })),
-  });
+    await Notification.create({
+      message: "An appointment has been canceled.",
+      viewers: viewerIds.map((id) => ({
+        user: new mongoose.Types.ObjectId(id),
+        isRead: false,
+        viewedAt: null,
+      })),
+    });
 
-  for (const email of emailList) {
-    try {
-      await sendEmail({
-        email,
-        subject: "Appointment Cancelled",
-        text: `<strong>An appointment has been canceled</strong><br/>
+    for (const email of emailList) {
+      try {
+        await sendEmail({
+          email,
+          subject: "Appointment Cancelled",
+          text: `<strong>An appointment has been canceled</strong><br/>
 <strong>Appointment ID:</strong> ${updatedAppointment._id}<br/>
 <strong>Date:</strong> ${updatedAppointment.appointment_date}<br/>
 <strong>Time:</strong> ${updatedAppointment.start_time} – ${updatedAppointment.end_time}<br/>
 <strong>Status:</strong> ${updatedAppointment.appointment_status}`,
-      });
-      console.log(`📨 Cancellation email sent to ${email}`);
-    } catch (err) {
-      console.error(`❌ Failed to send email to ${email}: ${err.message}`);
+        });
+        console.log(`📨 Cancellation email sent to ${email}`);
+      } catch (err) {
+        console.error(`❌ Failed to send email to ${email}: ${err.message}`);
+      }
     }
   }
-}
-
 
   // 3. Re-assigned → Notify staff
   if (status === "Re-assigned") {
@@ -976,7 +1046,7 @@ exports.GetPatientAppointment = AsyncErrorHandler(async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) { 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         status: "Error",
         message: "Invalid patient ID format.",

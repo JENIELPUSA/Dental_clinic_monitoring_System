@@ -24,22 +24,49 @@ exports.createCategory = AsyncErrorHandler(async (req, res) => {
 });
 
 
-exports.Displaycategory = AsyncErrorHandler(async(req,res)=>{
-    const features= new Apifeatures(category.find(),req.query)
-                                .filter()
-                                .sort()
-                                .limitFields()
-                                .paginate()
+exports.Displaycategory = AsyncErrorHandler(async (req, res) => {
+  const { limit = 10, page = 1, search = "" } = req.query;
 
-    const categoryed = await features.query;
+  const parsedLimit = parseInt(limit);
+  const parsedPage = parseInt(page);
+  const skip = (parsedPage - 1) * parsedLimit;
 
+  const matchStage = {};
 
-    res.status(200).json({
-        status:'success',
-        data:categoryed
-    })
+  // Optional search functionality (by name or description)
+  if (search.trim()) {
+    const searchTerms = search.trim().split(/\s+/);
+    matchStage.$and = searchTerms.map((term) => ({
+      $or: [
+        { name: { $regex: term, $options: "i" } },
+        { description: { $regex: term, $options: "i" } },
+      ],
+    }));
+  }
 
-})
+  const pipeline = [
+    { $match: matchStage },
+    { $sort: { createdAt: -1 } },
+    {
+      $facet: {
+        data: [{ $skip: skip }, { $limit: parsedLimit }],
+        totalCount: [{ $count: "count" }],
+      },
+    },
+  ];
+
+  const results = await category.aggregate(pipeline);
+  const data = results[0]?.data || [];
+  const totalCategories = results[0]?.totalCount[0]?.count || 0;
+
+  res.status(200).json({
+    status: "success",
+    data,
+    totalCategories,
+    totalPages: Math.ceil(totalCategories / parsedLimit),
+    currentPage: parsedPage,
+  });
+});
 
 
 exports.Updatecategory =AsyncErrorHandler(async (req,res,next) =>{

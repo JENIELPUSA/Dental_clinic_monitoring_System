@@ -52,7 +52,7 @@ function ScheduleFormModal({
           {loading && <LoadingOverlay />} {/* Show LoadingOverlay while loading */}
 
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-black bg-opacity-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -68,22 +68,22 @@ function ScheduleFormModal({
               <button
                 onClick={onClose}
                 type="button"
-                className="absolute right-3 top-3 text-2xl font-bold text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                className="absolute right-3 top-3 text-2xl font-bold text-white hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                 aria-label="Close modal"
               >
                 &times;
               </button>
 
-              <h3 className="mb-4 text-xl font-semibold text-blue-800 dark:text-blue-200">
+              <h3 className="mb-4 text-xl font-semibold text-white dark:text-blue-200">
                 Book Appointment
               </h3>
 
               <div className="space-y-3">
-                <p className="flex items-center text-gray-800 dark:text-gray-200">
+                <p className="flex items-center text-white dark:text-gray-200">
                   <strong className="mr-2">Doctor:</strong>
                   <span className="font-mono">{selectedDoctorNameForForm}</span>
                 </p>
-                <p className="flex items-center text-gray-800 dark:text-gray-200">
+                <p className="flex items-center text-white dark:text-gray-200">
                   <strong className="mr-2">Time:</strong>
                   <span className="font-mono">
                     {selectedDoctorTimeStartForForm} - {selectedDoctorTimeEndForForm}

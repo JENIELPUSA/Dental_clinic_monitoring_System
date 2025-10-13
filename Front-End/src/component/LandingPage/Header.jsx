@@ -21,17 +21,6 @@ const Header = () => {
                 <p className="text-xs text-muted-foreground">Monitoring System</p>
               </div>
             </div>
-
-            {/* Desktop Login Button */}
-            <div className="hidden md:flex items-center gap-4">
-              <button
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
-                onClick={() => setShowLogin(true)}
-              >
-                Login
-              </button>
-            </div>
-
             {/* Mobile Menu Button */}
             <button
               className="md:hidden p-2 text-muted-foreground hover:text-primary transition-colors"

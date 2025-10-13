@@ -10,34 +10,56 @@ const DentalHistory = require("./../Models/Dental_HistorySchema");
 const Insurance = require("./../Models/InsuranceSchema");
 
 exports.DisplayPatient = AsyncErrorHandler(async (req, res) => {
-  const features = new Apifeatures(Patient.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
+  const { search = "", limit = 10, page = 1 } = req.query;
 
-  const patients = await features.query;
+  // Convert safely to integer
+  const parsedLimit = parseInt(limit, 10) || 5;
+  const parsedPage = parseInt(page, 10) || 1;
+  const skip = (parsedPage - 1) * parsedLimit;
 
-  // Format dob to "yyyy-MM-dd"
-  const formattedPatients = patients.map((patient) => {
-    const patientObj = patient.toObject();
+  const matchStage = {};
 
-    if (patientObj.dob) {
-      const dob = new Date(patientObj.dob);
-      const year = dob.getFullYear();
-      const month = String(dob.getMonth() + 1).padStart(2, "0");
-      const day = String(dob.getDate()).padStart(2, "0");
-      patientObj.dob = `${year}-${month}-${day}`;
-    }
+  if (search.trim()) {
+    const searchTerms = search.trim().split(/\s+/);
+    matchStage.$and = searchTerms.map((term) => ({
+      $or: [
+        { first_name: { $regex: term, $options: "i" } },
+        { last_name: { $regex: term, $options: "i" } },
+        { email: { $regex: term, $options: "i" } },
+        { contactNumber: { $regex: term, $options: "i" } },
+      ],
+    }));
+  }
 
-    return patientObj;
-  });
+  const pipeline = [
+    { $match: matchStage },
+    { $sort: { created_at: -1 } },
+    {
+      $facet: {
+        data: [
+          { $skip: skip },
+          { $limit: parsedLimit },
+        ],
+        totalCount: [{ $count: "count" }],
+      },
+    },
+  ];
+
+  const results = await Patient.aggregate(pipeline);
+
+  const data = results[0]?.data || [];
+  const totalPatients = results[0]?.totalCount[0]?.count || 0;
 
   res.status(200).json({
     status: "success",
-    data: formattedPatients,
+    data,
+    totalPatients,
+    totalPages: Math.ceil(totalPatients / parsedLimit),
+    currentPage: parsedPage,
   });
 });
+
+
 
 exports.UpdatePatient = AsyncErrorHandler(async (req, res, next) => {
   const oldPatient = await Patient.findById(req.params.id);

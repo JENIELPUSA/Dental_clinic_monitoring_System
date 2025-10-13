@@ -6,11 +6,11 @@ const CustomError = require("./../Utils/CustomError");
 const Notification = require("../Models/NotificationSchema");
 const User = require("../Models/LogInDentalSchema");
 const LogActionAudit = require("./../Models/LogActionAudit");
-const sendEmail = require("../Utils/email")
+const sendEmail = require("../Utils/email");
 const { PassThrough } = require("stream");
-const BillingHistory = require("../Models/BllingHiistorySchema")
-const generateBillPDFAndSend = require("../Controller/Services/generateBillPDF")
-const Treatment = require("../Models/Treatments")
+const BillingHistory = require("../Models/BllingHiistorySchema");
+const generateBillPDFAndSend = require("../Controller/Services/generateBillPDF");
+const Treatment = require("../Models/Treatments");
 
 exports.createBill = AsyncErrorHandler(async (req, res) => {
   const {
@@ -120,6 +120,7 @@ exports.createBill = AsyncErrorHandler(async (req, res) => {
         },
       },
     },
+    { $sort: { payment_date: 1 } },
   ]);
 
   const detailedBill = BillWithDetails[0];
@@ -138,9 +139,7 @@ exports.createBill = AsyncErrorHandler(async (req, res) => {
     io.to(targetUser.socketId).emit("billNotification", billMessage);
     console.log(`📨 Sent bill notification to patient (${patient_id})`);
   } else {
-    console.log(
-      `Patient (${patient_id}) is offline, saving notification...`
-    );
+    console.log(`Patient (${patient_id}) is offline, saving notification...`);
   }
 
   if (patient_id) {
@@ -157,16 +156,15 @@ exports.createBill = AsyncErrorHandler(async (req, res) => {
   }
 
   await BillingHistory.create({
-  patient_id: detailedBill.patient_id,
-  treatment_description: detailedBill.treatment_description,
-  total_amount: detailedBill.total_amount,
-  amount_paid: detailedBill.amount_paid,
-  balance: detailedBill.balance,
-  payment_status: detailedBill.payment_status,
-});
+    patient_id: detailedBill.patient_id,
+    treatment_description: detailedBill.treatment_description,
+    total_amount: detailedBill.total_amount,
+    amount_paid: detailedBill.amount_paid,
+    balance: detailedBill.balance,
+    payment_status: detailedBill.payment_status,
+  });
 
-await Treatment.findByIdAndUpdate(treatment_id, { done: true });
-
+  await Treatment.findByIdAndUpdate(treatment_id, { done: true });
 
   return res.status(201).json({
     status: "success",
@@ -208,7 +206,7 @@ exports.DisplayBill = AsyncErrorHandler(async (req, res) => {
               $expr: { $eq: ["$_id", "$$patientId"] },
             },
           },
-          { $project: { first_name: 1, last_name: 1, address: 1,email:1} },
+          { $project: { first_name: 1, last_name: 1, address: 1, email: 1 } },
         ],
         as: "patient_info",
       },
@@ -254,7 +252,8 @@ exports.DisplayBill = AsyncErrorHandler(async (req, res) => {
 });
 
 exports.UpdateBill = AsyncErrorHandler(async (req, res, next) => {
-  const { total_amount, amount_paid, balance, bill_date, payment_status } = req.body;
+  const { total_amount, amount_paid, balance, bill_date, payment_status } =
+    req.body;
 
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return next(new CustomError("Invalid ID format", 400));
@@ -289,7 +288,8 @@ exports.UpdateBill = AsyncErrorHandler(async (req, res, next) => {
     old_data: oldBill,
     new_data: updatebill,
     ip_address:
-      req.headers["x-forwarded-for"]?.split(",").shift() || req.socket?.remoteAddress,
+      req.headers["x-forwarded-for"]?.split(",").shift() ||
+      req.socket?.remoteAddress,
   });
 
   const billWithDetails = await DentalBill.aggregate([
@@ -311,7 +311,9 @@ exports.UpdateBill = AsyncErrorHandler(async (req, res, next) => {
         as: "appointment_info",
       },
     },
-    { $unwind: { path: "$appointment_info", preserveNullAndEmptyArrays: true } },
+    {
+      $unwind: { path: "$appointment_info", preserveNullAndEmptyArrays: true },
+    },
     {
       $lookup: {
         from: "patients",
@@ -442,8 +444,12 @@ exports.UpdateBill = AsyncErrorHandler(async (req, res, next) => {
     .fontSize(10)
     .font("Helvetica")
     .fillColor("gray")
-    .text("Unit 101, Bright Tower, 123 Clinic Street, City 1234", { align: "center" })
-    .text("Phone: (02) 1234 5678 | Email: info@smilebright.com", { align: "center" })
+    .text("Unit 101, Bright Tower, 123 Clinic Street, City 1234", {
+      align: "center",
+    })
+    .text("Phone: (02) 1234 5678 | Email: info@smilebright.com", {
+      align: "center",
+    })
     .moveDown(1.5);
 
   const invoiceX = doc.page.width - 200;
@@ -457,7 +463,10 @@ exports.UpdateBill = AsyncErrorHandler(async (req, res, next) => {
     .font("Helvetica")
     .fillColor("#000")
     .text(`Invoice ID: ${detailedBill._id}`, invoiceX)
-    .text(`Date: ${new Date(detailedBill.bill_date).toLocaleDateString()}`, invoiceX)
+    .text(
+      `Date: ${new Date(detailedBill.bill_date).toLocaleDateString()}`,
+      invoiceX
+    )
     .moveDown(1.5);
 
   doc
@@ -486,7 +495,12 @@ exports.UpdateBill = AsyncErrorHandler(async (req, res, next) => {
 
   doc
     .fillColor("#2980b9")
-    .rect(tableX, tableTop, tableCols.reduce((sum, col) => sum + col.width, 0), rowHeight)
+    .rect(
+      tableX,
+      tableTop,
+      tableCols.reduce((sum, col) => sum + col.width, 0),
+      rowHeight
+    )
     .fill();
 
   doc.font("Helvetica-Bold").fontSize(10).fillColor("#ffffff");
@@ -494,7 +508,9 @@ exports.UpdateBill = AsyncErrorHandler(async (req, res, next) => {
   tableCols.forEach((col) => {
     doc.text(col.label, colX + 5, tableTop + 5, {
       width: col.width - 10,
-      align: ["Amount", "Paid", "Status"].includes(col.label) ? "right" : "left",
+      align: ["Amount", "Paid", "Status"].includes(col.label)
+        ? "right"
+        : "left",
     });
     colX += col.width;
   });
@@ -645,4 +661,4 @@ exports.DisplayBillByPatientId = async (req, res) => {
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });
   }
-};;
+};

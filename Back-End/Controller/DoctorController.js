@@ -29,19 +29,49 @@ exports.createDoctor = AsyncErrorHandler(async (req, res) => {
 });
 
 exports.DisplayDoctors = AsyncErrorHandler(async (req, res) => {
-  const features = new Apifeatures(doctors.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
+  const { search = "", limit = 10, page } = req.query;
+  const skip = (parseInt(page) - 1) * parseInt(limit);
 
-  const doctor = await features.query;
+  const matchStage = {};
+
+  if (search.trim()) {
+    const searchTerms = search.trim().split(/\s+/); // hatiin sa bawat space
+    matchStage.$and = searchTerms.map((term) => ({
+      $or: [
+        { first_name: { $regex: term, $options: "i" } },
+        { last_name: { $regex: term, $options: "i" } },
+        { email: { $regex: term, $options: "i" } },
+        { specialty: { $regex: term, $options: "i" } },
+      ],
+    }));
+  }
+
+  const pipeline = [
+    { $match: matchStage },
+    { $sort: { created_at: -1 } },
+    {
+      $facet: {
+        data: [{ $skip: skip }, { $limit: parseInt(limit) }],
+        totalCount: [{ $count: "count" }],
+      },
+    },
+  ];
+
+  const results = await doctors.aggregate(pipeline);
+
+  const data = results[0]?.data || [];
+  const totalDoctors = results[0]?.totalCount[0]?.count || 0;
 
   res.status(200).json({
     status: "success",
-    data: doctor,
+    data,
+    totalDoctors,
+    totalPages: Math.ceil(totalDoctors / parseInt(limit)),
+    currentPage: parseInt(page),
   });
 });
+
+
 
 exports.UpdateDoctor = AsyncErrorHandler(async (req, res, next) => {
   const doctor = await doctors.findById(req.params.id);

@@ -598,7 +598,9 @@ exports.DisplayPrescription = AsyncErrorHandler(async (req, res) => {
           },
           appointment_date: "$Appointment_info.appointment_date",
         },
-      },
+      },{
+      $sort: { createdAt: -1 } // <- Latest treatment first
+    }
     ]);
 
     return res.status(200).json({

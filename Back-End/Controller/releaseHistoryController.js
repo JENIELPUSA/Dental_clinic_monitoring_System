@@ -59,8 +59,63 @@ exports.addItem = AsyncErrorHandler(async (req, res) => {
 
 exports.getItems = async (req, res) => {
   try {
-    const items = await Releasehistory.find().sort({ createdAt: -1 });
-    res.status(200).json({ status: "success", data: items });
+    const { 
+      from, 
+      to, 
+      period = "", 
+      limit = 10, 
+      page = 1 
+    } = req.query;
+
+    const parsedLimit = parseInt(limit, 10);
+    const parsedPage = parseInt(page, 10);
+    const skip = (parsedPage - 1) * parsedLimit;
+
+    const matchStage = {};
+
+    if (from || to) {
+      matchStage.createdAt = {};
+      if (from) matchStage.createdAt.$gte = new Date(from);
+      if (to) matchStage.createdAt.$lte = new Date(to);
+    }
+
+    const now = new Date();
+    if (period === "weekly") {
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      matchStage.createdAt = { $gte: startOfWeek };
+    } else if (period === "monthly") {
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      matchStage.createdAt = { $gte: startOfMonth };
+    } else if (period === "yearly") {
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+      matchStage.createdAt = { $gte: startOfYear };
+    }
+
+    const pipeline = [
+      { $match: matchStage },
+      { $sort: { createdAt: -1 } },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: parsedLimit }],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+    ];
+
+    const results = await Releasehistory.aggregate(pipeline);
+
+    const data = results[0]?.data || [];
+    const totalItems = results[0]?.totalCount[0]?.count || 0;
+
+    res.status(200).json({
+      status: "success",
+      data,
+      totalItems,
+      totalPages: Math.ceil(totalItems / parsedLimit),
+      currentPage: parsedPage,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,

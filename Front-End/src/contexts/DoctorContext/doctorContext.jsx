@@ -13,11 +13,13 @@ export const DoctorDisplayProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [isTotalPages, setTotalPages] = useState();
+    const [isTotalDoctors, setTotalDoctors] = useState();
     const [showModal, setShowModal] = useState(false);
     const [modalStatus, setModalStatus] = useState("success");
     const [isOTPModal, setOTPModal] = useState(false);
     const [userId, setUserId] = useState("");
-
+console.log("isTotalPages",isTotalPages)
     useEffect(() => {
         if (!authToken) {
             setDoctors([]);
@@ -38,18 +40,21 @@ export const DoctorDisplayProvider = ({ children }) => {
         }
     }, [customError]);
 
-    const fetchDoctortData = async () => {
+    const fetchDoctortData = async (queryParams = {}) => {
         if (!authToken) return;
         setLoading(true); // Set loading to true before fetching data
         try {
             const res = await axiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Doctors`, {
                 withCredentials: true,
+                params: queryParams,
                 headers: { Authorization: `Bearer ${authToken}` },
             });
 
             const doctor = res?.data.data;
             setDoctors(doctor);
-
+            setTotalPages(res?.data.totalPages);
+            setCurrentPage(res?.data.currentPage);
+            setTotalDoctors(res?.data.totalDoctors);
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {
@@ -146,12 +151,11 @@ export const DoctorDisplayProvider = ({ children }) => {
                 },
             );
 
-
-            console.log("Doctor",res.data.data)
+            console.log("Doctor", res.data.data);
             if (res.data.status === "Success") {
                 if (role !== "admin") {
                     handleOTP(res.data.user._id);
-                } else if (role ==="admin") {
+                } else if (role === "admin") {
                     setModalStatus("success");
                     setShowModal(true);
                 }
@@ -185,6 +189,11 @@ export const DoctorDisplayProvider = ({ children }) => {
                 Deletedata,
                 AddDoctor,
                 setUserId,
+                isTotalDoctors,
+                isTotalPages,
+                currentPage,
+                loading,
+                fetchDoctortData,
             }}
         >
             {children}

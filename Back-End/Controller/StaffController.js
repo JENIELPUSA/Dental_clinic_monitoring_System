@@ -13,19 +13,54 @@ exports.createBrand = AsyncErrorHandler(async (req, res) => {
 });
 
 exports.DisplayStaff = AsyncErrorHandler(async (req, res) => {
-  const features = new Apifeatures(Staff.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
+  const { search = "", limit = 10, page = 1 } = req.query;
 
-  const Staffs = await features.query;
+  const parsedLimit = parseInt(limit, 10) || 5;
+  const parsedPage = parseInt(page, 10) || 1;
+  const skip = (parsedPage - 1) * parsedLimit;
+
+  const matchStage = {};
+
+  if (search.trim()) {
+    const searchTerms = search.trim().split(/\s+/);
+    matchStage.$and = searchTerms.map((term) => ({
+      $or: [
+        { first_name: { $regex: term, $options: "i" } },
+        { last_name: { $regex: term, $options: "i" } },
+        { email: { $regex: term, $options: "i" } },
+        { position: { $regex: term, $options: "i" } },
+      ],
+    }));
+  }
+
+  const pipeline = [
+    { $match: matchStage },
+    { $sort: { created_at: -1 } },
+    {
+      $facet: {
+        data: [
+          { $skip: skip },
+          { $limit: parsedLimit },
+        ],
+        totalCount: [{ $count: "count" }],
+      },
+    },
+  ];
+
+  const results = await Staff.aggregate(pipeline);
+
+  const data = results[0]?.data || [];
+  const totalStaff = results[0]?.totalCount[0]?.count || 0;
 
   res.status(200).json({
     status: "success",
-    data: Staffs,
+    data,
+    totalStaff,
+    totalPages: Math.ceil(totalStaff / parsedLimit),
+    currentPage: parsedPage,
   });
 });
+
 
 exports.UpdateStaff = AsyncErrorHandler(async (req, res, next) => {
   const staff = await Staff.findById(req.params.id);

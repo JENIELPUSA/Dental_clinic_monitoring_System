@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { AuthContext } from "../AuthContext";
 import SuccessFailed from "../../ReusableFolder/SuccessandField";
@@ -13,34 +13,45 @@ export const InventoryProvider = ({ children }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const { authToken } = useContext(AuthContext);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isTotalPages, setTotalPages] = useState();
+    const [TotalInventory, setTotalInventory] = useState();
 
     // Modal states
     const [showModal, setShowModal] = useState(false);
     const [modalStatus, setModalStatus] = useState("success");
 
-    const fetchInventory = async () => {
-        try {
-            if (!authToken) return;
-            setLoading(true);
-            const res = await axios.get(
-                `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Inventory`,
-                { headers: { Authorization: `Bearer ${authToken}` } }
-            );
-            setInventory(res.data.data || res.data); // depende sa response structure
-        } catch (err) {
-            setError(err.response?.data?.message || "Error fetching inventory");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const fetchInventory = useCallback(
+        async (queryParams = {}) => {
+            try {
+                if (!authToken) return;
+                setLoading(true);
+
+                const res = await axios.get(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Inventory`, {
+                    headers: { Authorization: `Bearer ${authToken}` },
+                    params: queryParams,
+                });
+
+                const data = res.data;
+
+                setInventory(data.data || []);
+                setTotalPages(data.totalPages || 0);
+                setCurrentPage(data.currentPage || 1);
+                setTotalInventory(data.totalInventory || 0);
+            } catch (err) {
+                setError(err.response?.data?.message || "Error fetching inventory");
+            } finally {
+                setLoading(false);
+            }
+        },
+        [authToken],
+    );
 
     const addInventory = async (newItem) => {
         try {
-            const res = await axios.post(
-                `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Inventory`,
-                newItem,
-                { headers: { Authorization: `Bearer ${authToken}` } }
-            );
+            const res = await axios.post(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Inventory`, newItem, {
+                headers: { Authorization: `Bearer ${authToken}` },
+            });
             if (res.data.status === "success") {
                 fetchInventory();
                 setModalStatus("success");
@@ -57,15 +68,11 @@ export const InventoryProvider = ({ children }) => {
 
     const updateInventory = async (id, updatedData) => {
         try {
-            const res = await axios.patch(
-                `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Inventory/${id}`,
-                updatedData,
-                { headers: { Authorization: `Bearer ${authToken}` } }
-            );
+            const res = await axios.patch(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Inventory/${id}`, updatedData, {
+                headers: { Authorization: `Bearer ${authToken}` },
+            });
             if (res.data.status === "success") {
-                setInventory((prev) =>
-                    prev.map((item) => (item._id === id ? res.data.data : item))
-                );
+                setInventory((prev) => prev.map((item) => (item._id === id ? res.data.data : item)));
                 setModalStatus("success");
                 setShowModal(true);
             }
@@ -80,10 +87,9 @@ export const InventoryProvider = ({ children }) => {
 
     const deleteInventory = async (id) => {
         try {
-            const res = await axios.delete(
-                `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Inventory/${id}`,
-                { headers: { Authorization: `Bearer ${authToken}` } }
-            );
+            const res = await axios.delete(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Inventory/${id}`, {
+                headers: { Authorization: `Bearer ${authToken}` },
+            });
             if (res.data.status === "success") {
                 setInventory((prev) => prev.filter((item) => item._id !== id));
                 setModalStatus("success");
@@ -112,6 +118,10 @@ export const InventoryProvider = ({ children }) => {
                 addInventory,
                 updateInventory,
                 deleteInventory,
+                TotalInventory,
+                isTotalPages,
+                currentPage,
+                setCurrentPage,
             }}
         >
             {children}

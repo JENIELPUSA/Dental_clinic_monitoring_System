@@ -3,12 +3,11 @@ const AsyncErrorHandler = require("../Utils/AsyncErrorHandler");
 const Treatment = require("../Models/Treatments");
 const Appointment = require("../Models/appointmentSchema");
 const CustomError = require("../Utils/CustomError");
-const cloudinary = require("../Utils/cloudinary")
-const TreatmentResult = require("../Models/Before&after"); 
+const cloudinary = require("../Utils/cloudinary");
+const TreatmentResult = require("../Models/Before&after");
 const {
   sendTreatmentNotification,
 } = require("./../Controller/Services/TreatmentSocketServices");
-
 
 exports.createTreatment = AsyncErrorHandler(async (req, res) => {
   const {
@@ -152,9 +151,6 @@ exports.createTreatment = AsyncErrorHandler(async (req, res) => {
   });
 });
 
-
-
-
 exports.DisplayTreatment = AsyncErrorHandler(async (req, res) => {
   const results = await Treatment.aggregate([
     {
@@ -210,12 +206,14 @@ exports.DisplayTreatment = AsyncErrorHandler(async (req, res) => {
             },
           },
         },
+
         patient_address: {
           $ifNull: ["$Patient_info.address", "N/A"],
         },
         appointment_date: "$Appointment_info.appointment_date",
       },
     },
+    { $sort: { treatment_date: -1 } },
   ]);
 
   return res.status(200).json({

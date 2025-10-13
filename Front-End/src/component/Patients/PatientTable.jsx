@@ -1,7 +1,9 @@
 import { useContext, useState, useEffect } from "react";
 import { PatientDisplayContext } from "../../contexts/PatientContext/PatientContext";
 import { User } from "lucide-react";
+import { AuthContext } from "../../contexts/AuthContext";
 const PatientTable = () => {
+    const {role}=(AuthContext)
     const { patients } = useContext(PatientDisplayContext);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -12,6 +14,8 @@ const PatientTable = () => {
         const date = new Date(dateString);
         return date.toLocaleDateString("en-US");
     };
+
+    console.log("role",role)
 
     const filteredPatients =
         patients?.filter((patient) => {

@@ -70,7 +70,48 @@ exports.createSchedule = AsyncErrorHandler(async (req, res, next) => {
 
 exports.DisplaySchedule = AsyncErrorHandler(async (req, res) => {
   try {
-    const schedules = await Schedule.aggregate([
+    const { page = 1, limit = 5, from, to, search } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const matchStage = {};
+
+    if (from && to) {
+      matchStage.date = {
+        $gte: new Date(from + "T00:00:00.000Z"),
+        $lte: new Date(to + "T23:59:59.999Z"),
+      };
+    } else if (from) {
+      matchStage.date = { $gte: new Date(from + "T00:00:00.000Z") };
+    } else if (to) {
+      matchStage.date = { $lte: new Date(to + "T23:59:59.999Z") };
+    }
+
+    let searchConditions = [];
+    if (search && search.trim()) {
+      const terms = search.trim().split(/\s+/); // split by spaces
+      searchConditions = terms.map((term) => ({
+        $or: [
+          { "doctor_info.first_name": { $regex: term, $options: "i" } },
+          { "doctor_info.last_name": { $regex: term, $options: "i" } },
+          { "doctor_info.specialty": { $regex: term, $options: "i" } },
+          {
+            $expr: {
+              $regexMatch: {
+                input: { $concat: ["$doctor_info.first_name", " ", "$doctor_info.last_name"] },
+                regex: term,
+                options: "i",
+              },
+            },
+          },
+        ],
+      }));
+    }
+
+    const pipeline = [
+      { $match: matchStage },
       {
         $lookup: {
           from: "doctors",
@@ -85,6 +126,7 @@ exports.DisplaySchedule = AsyncErrorHandler(async (req, res) => {
           preserveNullAndEmptyArrays: true,
         },
       },
+      ...(searchConditions.length > 0 ? [{ $match: { $and: searchConditions } }] : []),
       {
         $project: {
           _id: 1,
@@ -115,20 +157,38 @@ exports.DisplaySchedule = AsyncErrorHandler(async (req, res) => {
           status: 1,
         },
       },
-    ]);
+      { $sort: { date: -1 } },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: limitNum }],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+    ];
 
-    return res.status(200).json({
+    const result = await Schedule.aggregate(pipeline);
+    const data = result[0]?.data || [];
+    const totalCount = result[0]?.totalCount?.[0]?.count || 0;
+    const totalPages = Math.ceil(totalCount / limitNum);
+
+    res.status(200).json({
       status: "Success",
-      data: schedules,
+      currentPage: pageNum,
+      totalPages,
+      totalCount,
+      data,
     });
   } catch (error) {
     console.error("Error in DisplaySchedule:", error.message);
-    return res.status(500).json({
+    res.status(500).json({
       status: "Error",
       message: error.message,
     });
   }
 });
+
+
+
 
 exports.deleteSched = AsyncErrorHandler(async (req, res, next) => {
   await Schedule.findByIdAndDelete(req.params.id);

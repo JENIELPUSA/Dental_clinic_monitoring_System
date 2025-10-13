@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { InventoryDisplayContext } from "../../contexts/InventoryContext/InventoryContext";
 import LoadingOverlay from "../../component/ReusableComponents/LoadingOverlay";
 import { CategoryDisplayContext } from "../../contexts/CategoryContext";
+import {dentalItems} from "./DentalItem"
+
 
 const InventoryFormModal = ({ isOpen, onClose, initialData = {} }) => {
     const [formData, setFormData] = useState({
@@ -14,6 +16,7 @@ const InventoryFormModal = ({ isOpen, onClose, initialData = {} }) => {
         expirationDate: "",
     });
 
+    const [suggestions, setSuggestions] = useState([]);
     const { categories } = useContext(CategoryDisplayContext);
     const { updateInventory, addInventory } = useContext(InventoryDisplayContext);
     const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +30,7 @@ const InventoryFormModal = ({ isOpen, onClose, initialData = {} }) => {
             unit: "",
             expirationDate: "",
         });
+        setSuggestions([]);
     };
 
     useEffect(() => {
@@ -54,6 +58,19 @@ const InventoryFormModal = ({ isOpen, onClose, initialData = {} }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
+
+        // Filter dentalItems for suggestions
+        if (name === "itemName") {
+            const filtered = dentalItems.filter(item =>
+                item.toLowerCase().includes(value.toLowerCase())
+            );
+            setSuggestions(filtered);
+        }
+    };
+
+    const handleSuggestionClick = (item) => {
+        setFormData((prev) => ({ ...prev, itemName: item }));
+        setSuggestions([]);
     };
 
     const handleSubmit = async (e) => {
@@ -103,8 +120,8 @@ const InventoryFormModal = ({ isOpen, onClose, initialData = {} }) => {
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                {/* Item Name */}
-                                <div className="space-y-1 sm:col-span-2">
+                                {/* Item Name with Autocomplete */}
+                                <div className="space-y-1 sm:col-span-2 relative">
                                     <label className="block text-sm font-medium text-blue-800 dark:text-blue-200">
                                         Item Name
                                     </label>
@@ -114,8 +131,22 @@ const InventoryFormModal = ({ isOpen, onClose, initialData = {} }) => {
                                         value={formData.itemName}
                                         onChange={handleChange}
                                         required
+                                        autoComplete="off"
                                         className="w-full rounded-md border px-3 py-2 text-sm dark:border-blue-800/50 dark:bg-blue-900/30 dark:text-white"
                                     />
+                                    {suggestions.length > 0 && (
+                                        <ul className="absolute z-10 mt-1 max-h-40 w-full overflow-auto rounded-md border bg-white dark:bg-blue-900/80 dark:border-blue-800/50">
+                                            {suggestions.map((item, index) => (
+                                                <li
+                                                    key={index}
+                                                    onClick={() => handleSuggestionClick(item)}
+                                                    className="cursor-pointer px-3 py-2 hover:bg-blue-100 dark:hover:bg-blue-800"
+                                                >
+                                                    {item}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </div>
 
                                 {/* Brand */}

@@ -15,6 +15,8 @@ export const PatientDisplayProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [TotalPages, setTotalPages] = useState();
+    const [TotalPatients, setTotalPatients] = useState(0);
     const [showModal, setShowModal] = useState(false);
     const [modalStatus, setModalStatus] = useState("success");
     const [usersPerPage, setusersPerPage] = useState(6);
@@ -44,17 +46,21 @@ export const PatientDisplayProvider = ({ children }) => {
         }
     }, [customError]);
 
-    const fetchPatientData = async () => {
+    const fetchPatientData = async (queryParams = {}) => {
         if (!authToken) return;
         setLoading(true);
         try {
             const res = await axiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Patient`, {
                 withCredentials: true,
+                params: queryParams,
                 headers: { Authorization: `Bearer ${authToken}` },
             });
 
             const patient = res?.data.data;
             setPatients(patient);
+            setTotalPages(res?.data.totalPages);
+            setCurrentPage(res?.data.currentPage);
+            setTotalPatients(res?.data.totalPatients);
         } catch (error) {
             console.error("Error fetching data:", error);
             setError("Failed to fetch data");
@@ -86,7 +92,7 @@ export const PatientDisplayProvider = ({ children }) => {
 
                 setModalStatus("success");
                 setShowModal(true);
-                return { success: true, data: response }; 
+                return { success: true, data: response };
             } else {
                 setModalStatus("failed");
                 setShowModal(true);
@@ -183,6 +189,11 @@ export const PatientDisplayProvider = ({ children }) => {
                 DeleteNewBorn,
                 UpdatePatient,
                 AddPatient,
+                TotalPatients,
+                TotalPages,
+                currentPage,
+                fetchPatientData,
+                loading,
             }}
         >
             {children}

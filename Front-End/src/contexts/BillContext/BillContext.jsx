@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useState, useEffect, useContext, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AuthContext } from "../AuthContext";
@@ -9,7 +9,7 @@ import { TreatmentDisplayContext } from "../TreatmentContext/TreatmentContext";
 export const BillDisplayContext = createContext();
 
 export const BillDisplayProvider = ({ children }) => {
-    const {fetchTreatment}=useContext(TreatmentDisplayContext)
+    const { fetchTreatment } = useContext(TreatmentDisplayContext);
     const { authToken } = useContext(AuthContext);
     const [isBIll, setBill] = useState([]);
     const [isHistory, setHistory] = useState([]);
@@ -18,6 +18,9 @@ export const BillDisplayProvider = ({ children }) => {
     const [customError, setCustomError] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [modalStatus, setModalStatus] = useState("success");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isTotalPages, setTotalPages] = useState();
+    const [TotalCount, setTotalCount] = useState();
     useEffect(() => {
         if (!authToken) {
             setBill([]);
@@ -163,26 +166,33 @@ export const BillDisplayProvider = ({ children }) => {
         }
     };
 
-    const fetchHistory = async () => {
-        if (!authToken) return;
+    const fetchHistory = useCallback(
+        async (queryParams = {}) => {
+            if (!authToken) return;
 
-        setLoading(true);
-        try {
-            const res = await axiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Bill/History`, {
-                withCredentials: true,
-                headers: { Authorization: `Bearer ${authToken}` },
-            });
-            const BillData = res?.data?.data;
-            setHistory(BillData);
-        } catch (error) {
-            console.error("Error fetching data:", error);
-            setError("Failed to fetch data");
-        } finally {
-            setLoading(false);
-        }
-    };
+            setLoading(true);
+            try {
+                const res = await axiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Bill/History`, {
+                    withCredentials: true,
+                    params: queryParams,
+                    headers: { Authorization: `Bearer ${authToken}` },
+                });
+                const BillData = res?.data?.data;
+                setHistory(BillData);
+                setCurrentPage(res?.data?.currentPage);
+                setTotalPages(res?.data?.totalPages);
+                setTotalCount(res?.data?.totalCount);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                setError("Failed to fetch data");
+            } finally {
+                setLoading(false);
+            }
+        },
+        [authToken],
+    );
 
-const GeneratePdf = async (patient_id) => {
+    const GeneratePdf = async (patient_id) => {
         if (!authToken) return;
 
         setLoading(true);
@@ -206,7 +216,14 @@ const GeneratePdf = async (patient_id) => {
                 AddBill,
                 UpdateBill,
                 deleteBill,
-                isHistory,GeneratePdf,fetchHistory
+                isHistory,
+                GeneratePdf,
+                fetchHistory,
+                TotalCount,
+                isTotalPages,
+                currentPage,
+                loading,
+                setCurrentPage,
             }}
         >
             {children}

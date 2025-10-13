@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState, useContext } from "react";
+import React, { createContext, useEffect, useState, useContext, useCallback } from "react";
 import axios from "axios";
 import { AuthContext } from "../contexts/AuthContext";
 import SuccessFailed from "../ReusableFolder/SuccessandField";
@@ -11,22 +11,35 @@ export const CategoryProvider = ({ children }) => {
     const { authToken } = useContext(AuthContext);
     const [showModal, setShowModal] = useState(false);
     const [modalStatus, setModalStatus] = useState("success");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isTotalPages, setTotalPages] = useState();
+    const [TotalCategories, setTotalCategories] = useState();
+
     const API_URL = `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/InventoryCategory`;
 
-    const fetchCategories = async () => {
-        if (!authToken) return;
-        setLoading(true);
-        try {
-            const res = await axios.get(API_URL, {
-                headers: { Authorization: `Bearer ${authToken}` },
-            });
-            setCategories(res.data.data || []);
-        } catch (err) {
-            console.error("Error fetching categories:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const fetchCategories = useCallback(
+        async (queryParams = {}) => {
+            if (!authToken) return;
+            setLoading(true);
+            try {
+                const res = await axios.get(API_URL, {
+                    headers: { Authorization: `Bearer ${authToken}` },
+                    params: queryParams, 
+                });
+
+                const data = res.data;
+                setCategories(data.data || []);
+                setTotalPages(data.totalPages || 0);
+                setCurrentPage(data.currentPage || 1);
+                setTotalCategories(data.totalCategories || 0);
+            } catch (err) {
+                console.error("Error fetching categories:", err);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [authToken, API_URL], // dependencies
+    );
 
     const addCategory = async (categoryData) => {
         try {
@@ -46,7 +59,6 @@ export const CategoryProvider = ({ children }) => {
         }
     };
 
-    // ✅ Update category
     const updateCategory = async (id, categoryData) => {
         try {
             const res = await axios.patch(`${API_URL}/${id}`, categoryData);
@@ -96,6 +108,9 @@ export const CategoryProvider = ({ children }) => {
                 addCategory,
                 updateCategory,
                 deleteCategory,
+                TotalCategories,
+                isTotalPages,
+                currentPage,setCurrentPage
             }}
         >
             {children}

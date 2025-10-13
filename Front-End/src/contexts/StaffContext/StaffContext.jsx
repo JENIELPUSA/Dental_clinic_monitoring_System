@@ -16,6 +16,9 @@ export const StaffDisplayProvider = ({ children }) => {
     const [modalStatus, setModalStatus] = useState("success");
     const [isOTPModal, setOTPModal] = useState(false);
     const [userId, setUserId] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isTotalPages, setTotalPages] = useState();
+    const [isTotalStaff, setTotalStaff] = useState();
 
     useEffect(() => {
         if (!authToken) {
@@ -65,7 +68,8 @@ export const StaffDisplayProvider = ({ children }) => {
                     fetchStaff();
                     setModalStatus("success");
                     setShowModal(true);
-                     return { success: true, data: newStaff }; 
+
+                    return { success: true, data: newStaff };
                 } else {
                     handleOTP(newStaff._id); // Show OTP flow for non-admin
                 }
@@ -89,17 +93,21 @@ export const StaffDisplayProvider = ({ children }) => {
             }
         }
     };
-    const fetchStaff = async () => {
+    const fetchStaff = async (queryParams = {}) => {
         if (!authToken) return;
 
         setLoading(true);
         try {
             const res = await axiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Staff`, {
                 withCredentials: true,
+                params: queryParams,
                 headers: { Authorization: `Bearer ${authToken}` },
             });
             const StaffData = res?.data?.data;
             setStaff(StaffData);
+            setTotalPages(res?.data.totalPages);
+            setCurrentPage(res?.data.currentPage);
+            setTotalStaff(res?.data.totalStaff);
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {
@@ -153,7 +161,7 @@ export const StaffDisplayProvider = ({ children }) => {
                 setStaff((prevUsers) => prevUsers.map((u) => (u._id === response.data.data._id ? { ...u, ...response.data.data } : u)));
                 setModalStatus("success");
                 setShowModal(true);
-                 return { success: true, data: response }; 
+                return { success: true, data: response };
             } else {
                 setModalStatus("failed");
                 setShowModal(true);
@@ -179,6 +187,10 @@ export const StaffDisplayProvider = ({ children }) => {
                 isStaff,
                 DeleteStaff,
                 UpdateStaff,
+                currentPage,
+                isTotalPages,
+                isTotalStaff,
+                loading,fetchStaff
             }}
         >
             {children}

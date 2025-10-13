@@ -18,6 +18,8 @@ export const AppointmentDisplayProvider = ({ children }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [modalStatus, setModalStatus] = useState("success");
+    const [totalPages, setTotalPages] = useState();
+    const [TotalAppointment, setTotalAppointment] = useState();
 
     const addAppointment = (newApp) => {
         setAppointment((prev) => [...prev, newApp]);
@@ -50,12 +52,13 @@ export const AppointmentDisplayProvider = ({ children }) => {
         }
     }, [customError]);
 
-    const fetchAppointmentData = async () => {
+    const fetchAppointmentData = async (queryParams = {}) => {
         if (!authToken) return;
         setLoading(true);
         try {
             const res = await axiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Appointment`, {
                 withCredentials: true,
+                params: queryParams,
                 headers: { Authorization: `Bearer ${authToken}` },
             });
 
@@ -71,6 +74,9 @@ export const AppointmentDisplayProvider = ({ children }) => {
                 setAppointment(filtered);
             } else if (role === "admin" || role === "staff") {
                 setAppointment(fetchedData);
+                setTotalPages(res.data.totalPages);
+                setCurrentPage(res.data.currentPage);
+                setTotalAppointment(res.data.totalAppointments);
             } else {
                 const filtered = fetchedData.filter((item) => item.doctor_id === linkId);
                 setAppointment(filtered);
@@ -111,29 +117,28 @@ export const AppointmentDisplayProvider = ({ children }) => {
         }
     };
 
-const GetPatientAppointment = async (dataId) => {
-    if (!dataId || !authToken) return; 
+    const GetPatientAppointment = async (dataId) => {
+        if (!dataId || !authToken) return;
 
-    setLoading(true);
-    try {
-        const res = await axiosInstance.get(
-            `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Appointment/GetPatientAppointment/${dataId}`,
-            {
-                withCredentials: true,
-                headers: { Authorization: `Bearer ${authToken}` },
-            },
-        );
+        setLoading(true);
+        try {
+            const res = await axiosInstance.get(
+                `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Appointment/GetPatientAppointment/${dataId}`,
+                {
+                    withCredentials: true,
+                    headers: { Authorization: `Bearer ${authToken}` },
+                },
+            );
 
-        const Patient = res?.data.data;
-        setPatientData(Patient);
-    } catch (error) {
-        console.error("Error fetching data:", error);
-        setError("Failed to fetch data");
-    } finally {
-        setLoading(false);
-    }
-};
-
+            const Patient = res?.data.data;
+            setPatientData(Patient);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            setError("Failed to fetch data");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const AddBooking = async (values) => {
         try {
@@ -248,6 +253,10 @@ const GetPatientAppointment = async (dataId) => {
                 isPatientData,
                 GetPatientAppointment,
                 deleteAppointment,
+                totalPages,
+                currentPage,
+                TotalAppointment,
+                setCurrentPage,
             }}
         >
             {children}

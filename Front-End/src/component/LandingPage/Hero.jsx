@@ -36,7 +36,7 @@ const Hero = () => {
                         {/* Enhanced Heading */}
                         <div className="space-y-6">
                             <h1 className="text-5xl font-extrabold leading-tight lg:text-7xl">
-                                <span className="text-gray-900">BrightSmile</span>
+                                <span className="text-gray-900">Doc. Saclolo</span>
                                 <br />
                                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
                                     Dental Care

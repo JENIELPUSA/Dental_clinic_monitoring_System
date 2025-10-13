@@ -18,6 +18,8 @@ exports.addInventory = async (req, res) => {
       notes,
     } = req.body;
 
+    console.log(req.body)
+
     // Validate category ID
     if (!mongoose.Types.ObjectId.isValid(category)) {
       return res.status(400).json({ message: "Invalid category ID" });
@@ -69,7 +71,29 @@ exports.addInventory = async (req, res) => {
 
 exports.getAllInventory = async (req, res) => {
   try {
-    const items = await Inventory.aggregate([
+    const { search = "", limit = 10, page = 1 } = req.query;
+
+    const parsedLimit = parseInt(limit);
+    const parsedPage = parseInt(page);
+    const skip = (parsedPage - 1) * parsedLimit;
+
+    const matchStage = {};
+
+    // Optional search: can match itemName, brand, supplier, or category name
+    if (search.trim()) {
+      const searchTerms = search.trim().split(/\s+/);
+      matchStage.$and = searchTerms.map((term) => ({
+        $or: [
+          { itemName: { $regex: term, $options: "i" } },
+          { brand: { $regex: term, $options: "i" } },
+          { supplier: { $regex: term, $options: "i" } },
+          { notes: { $regex: term, $options: "i" } },
+          { "category.name": { $regex: term, $options: "i" } },
+        ],
+      }));
+    }
+
+    const pipeline = [
       {
         $lookup: {
           from: "categories",
@@ -79,6 +103,7 @@ exports.getAllInventory = async (req, res) => {
         },
       },
       { $unwind: "$category" },
+      { $match: matchStage },
       {
         $project: {
           itemName: 1,
@@ -96,15 +121,36 @@ exports.getAllInventory = async (req, res) => {
           "category.description": 1,
         },
       },
-    ]);
+      { $sort: { dateAcquired: -1 } },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: parsedLimit }],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+    ];
 
-    res.status(200).json(items);
+    const results = await Inventory.aggregate(pipeline);
+
+    const data = results[0]?.data || [];
+    const totalInventory = results[0]?.totalCount[0]?.count || 0;
+
+    res.status(200).json({
+      status: "success",
+      data,
+      totalInventory,
+      totalPages: Math.ceil(totalInventory / parsedLimit),
+      currentPage: parsedPage,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching inventory", error: error.message });
+    res.status(500).json({
+      status: "error",
+      message: "Error fetching inventory",
+      error: error.message,
+    });
   }
 };
+
 
 exports.updateInventory = async (req, res) => {
   try {

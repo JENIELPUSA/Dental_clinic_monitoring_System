@@ -205,7 +205,7 @@ const PrescriptionTable = () => {
                                     </td>
 
                                     {/* Actions column (only if not staff) */}
-                                    {role !== "staff" && (
+                                  
                                         <td className="border px-3 py-2 dark:border-blue-800/50">
                                             <div className="flex gap-2">
                                                 <button
@@ -216,6 +216,7 @@ const PrescriptionTable = () => {
                                                 >
                                                     <FileText className="h-4 w-4" />
                                                 </button>
+                                               {/*}
                                                 <button
                                                     onClick={() => handleDeletePrescription(prescription._id)}
                                                     className="rounded bg-transparent p-1.5 text-red-500 hover:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-300/10"
@@ -223,9 +224,10 @@ const PrescriptionTable = () => {
                                                 >
                                                     <TrashIcon className="h-4 w-4" />
                                                 </button>
+                                                */}
                                             </div>
                                         </td>
-                                    )}
+                                    
                                 </tr>
                             ))
                         ) : (

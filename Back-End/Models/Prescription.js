@@ -8,13 +8,21 @@ const MedicationSchema = new mongoose.Schema({
   end_date: { type: Date, required: true },
 });
 
-const PrescriptionSchema = new mongoose.Schema({
-  appointment_id: { type: mongoose.Schema.Types.ObjectId, ref: "Appointment" },
-  medications: [MedicationSchema], 
-  fileUrl: {
-    type: String,
-    default: null,
+const PrescriptionSchema = new mongoose.Schema(
+  {
+    appointment_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Appointment",
+    },
+    medications: [MedicationSchema],
+    fileUrl: {
+      type: String,
+      default: null,
+    },
   },
-});
+  {
+    timestamps: true,
+  }
+);
 
 module.exports = mongoose.model("Prescription", PrescriptionSchema);
