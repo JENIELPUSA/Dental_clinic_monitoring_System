@@ -23,7 +23,7 @@ const server = http.createServer(app);
 
 const io = socketIo(server, {
   cors: {
-    origin: process.env.FRONTEND_URL, // e.g. http://localhost:5173
+    origin:"https://dental-clinic-monitoring-system-web.onrender.com", // e.g. http://localhost:5173
     methods: ["GET", "POST"],
     credentials: true,
   },
