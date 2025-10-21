@@ -1,16 +1,15 @@
 import { io } from "socket.io-client";
 
-const socket = io("https://dental-clinic-monitoring-system.onrender.com", {
-  transports: ["websocket"],      // Only websocket
-  reconnection: true,             // Auto-reconnect
-  reconnectionAttempts: 5,        // Max 5 attempts
-  reconnectionDelay: 3000,        // 3s delay between attempts
-  withCredentials: true,          // For cookies if needed
-  secure: true                     // Ensure WSS (important sa production)
+const socket = io(import.meta.env.VITE_REACT_APP_BACKEND_BASEURL, {
+  transports: ["websocket"],
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 3000,
+  withCredentials: true,
 });
 
 socket.on("connect", () => {
-  console.log("Connected to socket server:", socket.id);
+  console.log("Connected to socket server:");
 });
 
 socket.on("connect_error", (error) => {

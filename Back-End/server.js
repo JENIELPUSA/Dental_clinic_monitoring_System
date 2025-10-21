@@ -9,7 +9,6 @@ const noScheduleEverCron = require("./Utils/noScheduleEverCheck");
 const checkPendingAppointments = require("./Utils/FindPendingCronjob");
 const checkReciept = require("./Utils/AutoGenerateReciept");
 
-//para pagkuha ng ipAddress
 app.set("trust proxy", true);
 
 process.on("uncaughtException", (err) => {
@@ -18,12 +17,11 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-// Create HTTP server and integrate with Socket.io
 const server = http.createServer(app);
 
 const io = socketIo(server, {
   cors: {
-    origin:"https://dental-clinic-monitoring-system-web.onrender.com", // e.g. http://localhost:5173
+    origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST"],
     credentials: true,
   },

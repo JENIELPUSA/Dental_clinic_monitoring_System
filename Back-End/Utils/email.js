@@ -2,22 +2,19 @@
 const nodemailer = require("nodemailer");
 
 const sendEmail = async (options) => {
-
-  const transporter = nodemailer.createTransport({
-    host: "smtp-relay.sendinblue.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,       // ex: 99b5c7001@smtp-brevo.com
-      pass: process.env.EMAIL_PASSWORD,   // Brevo SMTP API key
-    },
-    pool: true,
-    maxConnections: 5,
-    maxMessages: 100,
-  });
+const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        pool: true,
+        maxMessages: Infinity,
+        maxConnections: 500,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
 
   const mailOptions = {
-    from: `SACLOLODENTALCARE <jeniel12300@gmail.com>`,
+    from: `SACLOLODENTALCARE <${process.env.EMAIL_USER}>`,
     to: options.email,
     subject: options.subject,
     html: `
