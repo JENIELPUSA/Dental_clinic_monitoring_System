@@ -1,25 +1,21 @@
-// sendEmail.js
-const nodemailer = require("nodemailer");
+const Brevo = require("@getbrevo/brevo");
+
+const client = new Brevo.TransactionalEmailsApi();
+client.setApiKey(
+  Brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY
+);
 
 const sendEmail = async (options) => {
   try {
-    // Configure transporter for Elastic Email / Pepipost
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST, // e.g., smtp.elasticemail.com
-      port: Number(process.env.EMAIL_PORT) || 587, // 587 for TLS, 465 for SSL
-      secure: false, // true if port 465
-      auth: {
-        user: process.env.EMAIL_USER,     // SMTP login (verified domain email)
-        pass: process.env.EMAIL_PASSWORD, // SMTP API Key
+    const emailData = {
+      sender: {
+        name: "SACLOLODENTALCARE",
+        email: "appuse12300@gmail.com",
       },
-    });
-
-    // Mail options
-    const mailOptions = {
-      from: `"Doc.Saclolo Dental Care" <${process.env.EMAIL_USER}>`, // Verified sender
-      to: options.email,        // Receiver email
+      to: [{ email: options.email }],
       subject: options.subject,
-      html: `
+      htmlContent:  `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -81,22 +77,18 @@ const sendEmail = async (options) => {
           </div>
         </body>
         </html>
-      `,
-      attachments: options.attachments || [],
+      `,attachments: options.attachments || [],
     };
 
-    // Send email
-    const info = await transporter.sendMail(mailOptions);
-
-    console.log("Email sent successfully!");
-    console.log("MessageId:", info.messageId);
-    console.log("Response:", info.response);
-
-    return info;
+    await client.sendTransacEmail(emailData);
+    console.log("✅ Email sent successfully via Brevo API!");
   } catch (error) {
-    console.error("Error sending email:", error);
-    throw new Error(`Failed to send email: ${error.message}`);
+    console.error(
+      "❌ Error sending email via Brevo API:",
+      error.response?.body || error
+    );
   }
 };
 
 module.exports = sendEmail;
+
