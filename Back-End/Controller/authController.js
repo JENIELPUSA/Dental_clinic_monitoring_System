@@ -9,6 +9,28 @@ const crypto = require("crypto");
 const sendEmail = require("./../Utils/email");
 const Staff = require("../Models/StaffDentalSchema")
 
+
+const { google } = require("googleapis");
+
+exports.gmailCallback = async (req, res) => {
+  const code = req.query.code;
+  const oAuth2Client = new google.auth.OAuth2(
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+    process.env.REDIRECT_URI
+  );
+
+  try {
+    const { tokens } = await oAuth2Client.getToken(code);
+    console.log("Refresh Token:", tokens.refresh_token);
+    res.send("Authorization successful! Check your console for the refresh token.");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error retrieving access token");
+  }
+};
+
+
 const signToken = (id, role, linkId) => {
   return jwt.sign({ id, role, linkId }, process.env.SECRET_STR, {
     expiresIn: "1d",
@@ -353,7 +375,7 @@ exports.forgotPassword = AsyncErrorHandler(async (req, res, next) => {
   try {
     // Send password reset email
     await sendEmail({
-      email: user.username, // use username field since it holds the email
+      email: user.username,
       subject: "Password change request received",
       text: message,
     });

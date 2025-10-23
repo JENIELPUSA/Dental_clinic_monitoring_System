@@ -21,4 +21,7 @@ router.route('/mail-verification')
 router.route('/updatePassword')
 .patch(authController.protect,authController.updatePassword)
 
+router.route('/callback')
+.patch(authController.gmailCallback)
+
 module.exports = router;
