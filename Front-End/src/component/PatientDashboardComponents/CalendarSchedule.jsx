@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, createContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { SchedDisplayContext } from "../../contexts/Schedule/ScheduleContext";
 import ScheduleFormModal from "./ScheduleFormModal";
 
@@ -11,7 +11,7 @@ const processDoctorData = (rawData) => {
     }
 
     const hashCode = (str) => {
-        if (!str || typeof str !== "string") return "000000"; // fallback color
+        if (!str || typeof str !== "string") return "000000";
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
             hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -73,7 +73,6 @@ const processDoctorData = (rawData) => {
     };
 };
 
-
 function CalendarSchedule() {
     const { doctor } = useContext(SchedDisplayContext);
     const [selectedService, setSelectedService] = useState("");
@@ -95,6 +94,7 @@ function CalendarSchedule() {
     const [selectedDoctorTimeEndForForm, setSelectedDoctorTimeEndForForm] = useState(null);
     const [selectedDateForForm, setSelectedDateForForm] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
     useEffect(() => {
         if (doctor) {
             const data = processDoctorData(doctor);
@@ -208,6 +208,10 @@ function CalendarSchedule() {
         );
     }
 
+    // Normalize today to start of day for accurate comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     return (
         <div className="flex items-start justify-center">
             <div className="w-full max-w-4xl rounded-2xl border border-indigo-200 bg-white p-6 shadow-lg dark:border-blue-800/50 dark:bg-blue-900/20">
@@ -261,59 +265,95 @@ function CalendarSchedule() {
                         </div>
                     ))}
                     {getCalendarDays().map((day, index) => {
-                        const today = new Date();
-                        const isCurrentMonthAndYear =
-                            currentMonth.getMonth() === today.getMonth() && currentMonth.getFullYear() === today.getFullYear();
-                        const isToday = day && isCurrentMonthAndYear && day === today.getDate();
-                        const dateKey = day ? formatDateForSchedule(currentMonth.getFullYear(), currentMonth.getMonth(), day) : null;
+                        // Build full date for this calendar cell
+                        const calendarDate = day
+                            ? new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day)
+                            : null;
 
-                        const approvedTimeSlotsOnDate = dateKey ? mockDoctorDailySchedules[dateKey]?.filter(slot => slot.maxPatientsPerSlot > 0) : [];
-                        
+                        const isExpired = calendarDate && calendarDate < today;
+
+                        const isCurrentMonthAndYear =
+                            currentMonth.getMonth() === today.getMonth() &&
+                            currentMonth.getFullYear() === today.getFullYear();
+                        const isToday = day && isCurrentMonthAndYear && day === today.getDate();
+
+                        const dateKey = day
+                            ? formatDateForSchedule(currentMonth.getFullYear(), currentMonth.getMonth(), day)
+                            : null;
+
+                        const approvedTimeSlotsOnDate = dateKey
+                            ? mockDoctorDailySchedules[dateKey]?.filter(
+                                  (slot) => slot.maxPatientsPerSlot > 0
+                              )
+                            : [];
                         const hasAvailability = approvedTimeSlotsOnDate && approvedTimeSlotsOnDate.length > 0;
+
+                        const isDisabled = !day || isExpired;
 
                         return (
                             <div
                                 key={index}
-                                className={`relative flex min-h-[70px] cursor-pointer flex-col items-center justify-center rounded-md p-1 transition-all duration-200 ${
-                                    day
-                                        ? isToday
-                                            ? "bg-blue-200 font-bold text-blue-900 ring-2 ring-blue-500 dark:bg-blue-700 dark:text-white dark:ring-blue-300"
-                                            : hasAvailability
-                                                ? "bg-gray-50 hover:bg-indigo-100 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-indigo-900/50"
-                                                : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
-                                        : "bg-gray-100 dark:bg-gray-800"
+                                className={`relative flex min-h-[70px] flex-col items-center justify-center rounded-md p-1 transition-all duration-200 ${
+                                    isDisabled
+                                        ? "cursor-not-allowed opacity-40"
+                                        : isToday
+                                        ? "bg-blue-200 font-bold text-blue-900 ring-2 ring-blue-500 dark:bg-blue-700 dark:text-white dark:ring-blue-300"
+                                        : hasAvailability
+                                        ? "cursor-pointer bg-gray-50 hover:bg-indigo-100 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-indigo-900/50"
+                                        : "cursor-pointer bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
                                 }`}
                                 title={
-                                    hasAvailability
-                                        ? `Available time slots: ${approvedTimeSlotsOnDate.map((entry) => `${entry.doctorName} (${entry.timeStart}-${entry.timeEnd})`).join(", ")}`
+                                    isExpired
+                                        ? "This date has passed"
+                                        : hasAvailability
+                                        ? `Available time slots: ${approvedTimeSlotsOnDate
+                                              .map(
+                                                  (entry) =>
+                                                      `${entry.doctorName} (${entry.timeStart}-${entry.timeEnd})`
+                                              )
+                                              .join(", ")}`
                                         : day
-                                            ? "No available time slots"
-                                            : ""
+                                        ? "No available time slots"
+                                        : ""
                                 }
-                                onClick={() => handleDayClick(day, dateKey)}
+                                onClick={() => {
+                                    if (!isDisabled) {
+                                        handleDayClick(day, dateKey);
+                                    }
+                                }}
                             >
                                 <span className="text-lg">{day}</span>
-                                {hasAvailability && (
+                                {!isExpired && hasAvailability && (
                                     <div className="mt-1 flex space-x-1">
-                                        {Array.from(new Set(approvedTimeSlotsOnDate.map((slot) => slot.doctorId)))
+                                        {Array.from(
+                                            new Set(approvedTimeSlotsOnDate.map((slot) => slot.doctorId))
+                                        )
                                             .slice(0, 2)
                                             .map((docId) => {
                                                 return (
                                                     <span
                                                         key={docId}
                                                         className="h-3 w-3 rounded-full border border-white bg-green-500 dark:border-gray-800 dark:bg-green-600"
-                                                        title={mockDoctors.find((d) => d.id === docId)?.name || docId}
+                                                        title={
+                                                            mockDoctors.find((d) => d.id === docId)?.name || docId
+                                                        }
                                                     ></span>
                                                 );
                                             })}
-                                        {Array.from(new Set(approvedTimeSlotsOnDate.map((slot) => slot.doctorId))).length > 2 && (
+                                        {Array.from(
+                                            new Set(approvedTimeSlotsOnDate.map((slot) => slot.doctorId))
+                                        ).length > 2 && (
                                             <span className="flex h-3 w-3 items-center justify-center rounded-full border border-white bg-green-500 text-[8px] text-white dark:border-gray-800 dark:bg-green-600">
-                                                +{Array.from(new Set(approvedTimeSlotsOnDate.map((slot) => slot.doctorId))).length - 2}
+                                                +{
+                                                    Array.from(
+                                                        new Set(approvedTimeSlotsOnDate.map((slot) => slot.doctorId))
+                                                    ).length - 2
+                                                }
                                             </span>
                                         )}
                                     </div>
                                 )}
-                                {!hasAvailability && day && (
+                                {!isExpired && !hasAvailability && day && (
                                     <div className="mt-1 flex">
                                         <span
                                             className="h-3 w-3 rounded-full border border-white bg-red-300 dark:border-gray-800 dark:bg-red-600"
@@ -334,7 +374,13 @@ function CalendarSchedule() {
                 {selectedDateDoctors && currentSelectedDate && selectedDateDoctors.length > 0 && (
                     <div className="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-6 shadow-md dark:border-blue-700 dark:bg-blue-900/30">
                         <h3 className="mb-4 text-xl font-semibold text-blue-800 dark:text-blue-200">
-                            Available Time Slots for {new Date(currentSelectedDate).toLocaleDateString("en-US", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            Available Time Slots for{" "}
+                            {new Date(currentSelectedDate).toLocaleDateString("en-US", {
+                                weekday: "long",
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                            })}
                         </h3>
                         <ul className="space-y-3">
                             {selectedDateDoctors.map((slotEntry) => {
@@ -352,7 +398,10 @@ function CalendarSchedule() {
                                                 onError={(e) => {
                                                     e.target.onerror = null;
                                                     const avatarBgColor = (
-                                                        doctorInfo.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % 0xffffff
+                                                        doctorInfo.id
+                                                            .split("")
+                                                            .reduce((acc, char) => acc + char.charCodeAt(0), 0) %
+                                                        0xffffff
                                                     )
                                                         .toString(16)
                                                         .padStart(6, "0");
@@ -363,10 +412,15 @@ function CalendarSchedule() {
                                                 }}
                                             />
                                             <div>
-                                                <p className="font-medium text-gray-900 dark:text-gray-100">{slotEntry.doctorName}</p>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400">{slotEntry.specialty}</p>
+                                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                                    {slotEntry.doctorName}
+                                                </p>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                    {slotEntry.specialty}
+                                                </p>
                                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                    {slotEntry.timeStart} - {slotEntry.timeEnd} (Slot #: {slotEntry.maxPatientsPerSlot})
+                                                    {slotEntry.timeStart} - {slotEntry.timeEnd} (Slot #:{" "}
+                                                    {slotEntry.maxPatientsPerSlot})
                                                 </p>
                                             </div>
                                         </div>

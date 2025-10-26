@@ -3,7 +3,6 @@ import { SchedDisplayContext } from "../../contexts/Schedule/ScheduleContext";
 import AuthFormModal from "../Login/Login";
 
 const processDoctorData = (rawData) => {
-  // ... (your existing logic remains unchanged)
   const doctorsMap = new Map();
   const dailySchedules = {};
   if (!rawData || !Array.isArray(rawData)) {
@@ -209,6 +208,10 @@ function CalendarSchedule() {
     );
   }
 
+  // Normalize today to start of day for accurate comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   return (
     <div className="w-full max-w-4xl rounded-2xl border border-indigo-200 bg-white p-4 sm:p-5 md:p-6 shadow-lg dark:border-blue-800/50 dark:bg-blue-900/20">
       <h1 className="mb-4 text-center text-2xl font-bold text-indigo-900 dark:text-indigo-100 sm:mb-5 sm:text-3xl">
@@ -248,7 +251,13 @@ function CalendarSchedule() {
           </div>
         ))}
         {getCalendarDays().map((day, index) => {
-          const today = new Date();
+          // Build full date for this calendar cell
+          const calendarDate = day
+            ? new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day)
+            : null;
+
+          const isExpired = calendarDate && calendarDate < today;
+
           const isCurrentMonthAndYear =
             currentMonth.getMonth() === today.getMonth() && currentMonth.getFullYear() === today.getFullYear();
           const isToday = day && isCurrentMonthAndYear && day === today.getDate();
@@ -259,29 +268,37 @@ function CalendarSchedule() {
             : [];
           const hasAvailability = approvedTimeSlotsOnDate && approvedTimeSlotsOnDate.length > 0;
 
+          const isDisabled = !day || isExpired;
+
           return (
             <div
               key={index}
-              className={`relative flex min-h-[60px] cursor-pointer flex-col items-center justify-center rounded-md p-1 transition-all duration-200 ${
-                day
-                  ? isToday
-                    ? "bg-blue-200 font-bold text-blue-900 ring-2 ring-blue-500 dark:bg-blue-700 dark:text-white dark:ring-blue-300"
-                    : hasAvailability
-                    ? "bg-gray-50 hover:bg-indigo-100 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-indigo-900/50"
-                    : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
-                  : "bg-gray-100 dark:bg-gray-800"
+              className={`relative flex min-h-[60px] flex-col items-center justify-center rounded-md p-1 transition-all duration-200 ${
+                isDisabled
+                  ? "cursor-not-allowed opacity-40"
+                  : isToday
+                  ? "bg-blue-200 font-bold text-blue-900 ring-2 ring-blue-500 dark:bg-blue-700 dark:text-white dark:ring-blue-300"
+                  : hasAvailability
+                  ? "cursor-pointer bg-gray-50 hover:bg-indigo-100 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-indigo-900/50"
+                  : "cursor-pointer bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
               }`}
               title={
-                hasAvailability
+                isExpired
+                  ? "This date has passed"
+                  : hasAvailability
                   ? `Available: ${approvedTimeSlotsOnDate.map((e) => `${e.doctorName} (${e.timeStart}-${e.timeEnd})`).join(", ")}`
                   : day
                   ? "No available time slots"
                   : ""
               }
-              onClick={() => handleDayClick(day, dateKey)}
+              onClick={() => {
+                if (!isDisabled) {
+                  handleDayClick(day, dateKey);
+                }
+              }}
             >
               <span className="text-sm font-medium sm:text-base">{day}</span>
-              {hasAvailability && (
+              {!isExpired && hasAvailability && (
                 <div className="mt-1 flex space-x-1">
                   {Array.from(new Set(approvedTimeSlotsOnDate.map((slot) => slot.doctorId)))
                     .slice(0, 2)
@@ -299,7 +316,7 @@ function CalendarSchedule() {
                   )}
                 </div>
               )}
-              {!hasAvailability && day && (
+              {!isExpired && !hasAvailability && day && (
                 <div className="mt-1 flex">
                   <span
                     className="h-2 w-2 rounded-full border border-white bg-red-300 dark:border-gray-800 dark:bg-red-600 sm:h-2.5 sm:w-2.5"
