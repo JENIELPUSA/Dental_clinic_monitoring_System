@@ -59,10 +59,6 @@ export const navbarLinks = [
                 label: "Prescription",
                 icon: Pill ,
                 path: "/dashboard/prescription",
-            },{
-                label: "Insurance",
-                icon: ShieldCheck ,
-                path: "/dashboard/Insurance",
             },
             {
                 label: "Inventory",

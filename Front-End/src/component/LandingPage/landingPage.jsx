@@ -27,7 +27,7 @@ const LandingPage = () => {
 
           {/* Map Section */}
           <motion.div
-            className="flex justify-center p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-white "
+            className="flex justify-center p-4 bg-blue-100"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}

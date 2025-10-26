@@ -127,18 +127,6 @@ exports.deletePatient = AsyncErrorHandler(async (req, res, next) => {
 
   await Patient.findByIdAndDelete(patientId);
 
-  await LogActionAudit.create({
-    action_type: "DELETE",
-    performed_by: req.user?.linkedId,
-    module: "Patient",
-    reference_id: patient._id,
-    description: `Deleted patient: ${patient.first_name} ${patient.last_name}`,
-    old_data: patient,
-    ip_address:
-      req.headers["x-forwarded-for"]?.split(",").shift() ||
-      req.socket?.remoteAddress,
-  });
-
   res.status(200).json({
     status: "success",
     message: "Patient deleted successfully.",

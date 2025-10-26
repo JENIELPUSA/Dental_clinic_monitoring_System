@@ -94,7 +94,7 @@ const DentalHistoryTable = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedRecord(null);
-         setVerification(false);
+        setVerification(false);
     };
 
     const handleDeleteRecord = (recordId) => {
@@ -237,13 +237,14 @@ const DentalHistoryTable = () => {
                                             >
                                                 <PencilIcon className="h-4 w-4" />
                                             </button>
+                                            {/*
                                             <button
                                                 onClick={() => handleDeleteRecord(record._id)}
                                                 className="rounded p-1.5 text-red-500 hover:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-300/10"
                                                 title="Delete Record"
                                             >
                                                 <TrashIcon className="h-4 w-4" />
-                                            </button>
+                                            </button>*/}
                                         </div>
                                     </td>
                                 </tr>

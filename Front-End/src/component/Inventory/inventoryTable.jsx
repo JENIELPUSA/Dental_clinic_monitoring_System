@@ -171,13 +171,14 @@ const InventoryTable = () => {
                                             >
                                                 <Pencil className="h-4 w-4" />
                                             </button>
-                                            <button
+                                            {/* <button
                                                 onClick={() => handleDelete(data._id)}
                                                 className="rounded bg-transparent p-1.5 text-red-500 hover:bg-red-500/10"
                                                 title="Delete Item"
                                             >
                                                 <Trash2 className="h-4 w-4" />
-                                            </button>
+                                            </button>*/}
+                                           
                                         </div>
                                     </td>
                                 </tr>

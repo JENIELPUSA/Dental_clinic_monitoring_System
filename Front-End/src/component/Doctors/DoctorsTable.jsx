@@ -10,15 +10,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 
 const DoctorTable = () => {
     const { role } = useContext(AuthContext);
-    const {
-        doctor = [],
-        Deletedata,
-        isTotalDoctors,
-        isTotalPages,
-        currentPage,
-        loading,
-        fetchDoctortData,
-    } = useContext(DoctorDisplayContext);
+    const { doctor = [], Deletedata, isTotalDoctors, isTotalPages, currentPage, loading, fetchDoctortData } = useContext(DoctorDisplayContext);
 
     const [searchTerm, setSearchTerm] = useState("");
     const [isDoctorModal, setDoctorModal] = useState(false);
@@ -95,12 +87,10 @@ const DoctorTable = () => {
     const endEntry = Math.min(currentPage * itemsPerPage, isTotalDoctors || 0);
 
     return (
-        <div className="w-full rounded-2xl bg-white p-4 sm:p-6 shadow-md dark:border dark:border-blue-800/50 dark:bg-blue-900/20">
+        <div className="w-full rounded-2xl bg-white p-4 shadow-md dark:border dark:border-blue-800/50 dark:bg-blue-900/20 sm:p-6">
             {/* Header */}
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <h2 className="text-lg font-bold text-blue-800 dark:text-blue-200 sm:text-xl">
-                    List Of Doctors
-                </h2>
+                <h2 className="text-lg font-bold text-blue-800 dark:text-blue-200 sm:text-xl">List Of Doctors</h2>
                 <div className="relative w-full md:w-64">
                     <input
                         type="text"
@@ -134,9 +124,7 @@ const DoctorTable = () => {
                             <th className="border px-3 py-2.5 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
                                 <div className="flex items-center justify-center">
                                     {role === "staff" ? (
-                                        <span className="text-xs font-medium text-blue-700 dark:text-blue-300 sm:text-sm">
-                                            Action
-                                        </span>
+                                        <span className="text-xs font-medium text-blue-700 dark:text-blue-300 sm:text-sm">Action</span>
                                     ) : (
                                         <button
                                             onClick={onAddDoctor}
@@ -196,13 +184,15 @@ const DoctorTable = () => {
                                                     >
                                                         <PencilIcon className="h-4 w-4 stroke-blue-500 dark:stroke-blue-300" />
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleDeleteUser(dr._id)}
-                                                        className="rounded p-1.5 text-red-500 hover:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-300/10"
-                                                        title="Delete"
-                                                    >
-                                                        <TrashIcon className="h-4 w-4 stroke-red-500 dark:stroke-red-300" />
-                                                    </button>
+                                                    {/* 
+<button
+    onClick={() => handleDeleteUser(dr._id)}
+    className="rounded p-1.5 text-red-500 hover:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-300/10"
+    title="Delete"
+>
+    <TrashIcon className="h-4 w-4 stroke-red-500 dark:stroke-red-300" />
+</button>
+*/}
                                                 </>
                                             )}
                                             {dr.scheduled !== true && (
@@ -220,7 +210,10 @@ const DoctorTable = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="7" className="px-3 py-6 text-center text-blue-800 dark:text-blue-200">
+                                <td
+                                    colSpan="7"
+                                    className="px-3 py-6 text-center text-blue-800 dark:text-blue-200"
+                                >
                                     {loading ? "Loading..." : "No doctors found"}
                                 </td>
                             </tr>
@@ -233,8 +226,7 @@ const DoctorTable = () => {
             {!loading && isTotalPages > 1 && (
                 <div className="mt-4 flex flex-col items-center justify-between gap-3 sm:flex-row">
                     <div className="text-sm text-blue-800 dark:text-blue-200">
-                        Showing <span className="font-medium">{startEntry}</span> to{" "}
-                        <span className="font-medium">{endEntry}</span> of{" "}
+                        Showing <span className="font-medium">{startEntry}</span> to <span className="font-medium">{endEntry}</span> of{" "}
                         <span className="font-medium">{isTotalDoctors || 0}</span> entries
                     </div>
                     <div className="flex flex-wrap justify-center gap-1">
@@ -261,7 +253,7 @@ const DoctorTable = () => {
                             ‹
                         </button>
 
-                        <button className="rounded border bg-blue-100 px-2.5 py-1 font-bold text-sm text-blue-800 dark:bg-blue-800/50 dark:text-blue-200">
+                        <button className="rounded border bg-blue-100 px-2.5 py-1 text-sm font-bold text-blue-800 dark:bg-blue-800/50 dark:text-blue-200">
                             {currentPage}
                         </button>
 
@@ -290,7 +282,7 @@ const DoctorTable = () => {
                     </div>
                 </div>
             )}
-            
+
             {/* Modals */}
             <DoctorFormModal
                 isOpen={isDoctorModal}

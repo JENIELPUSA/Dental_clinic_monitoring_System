@@ -3,13 +3,16 @@ import { Pencil, Trash2, PlusCircle, X } from "lucide-react";
 import { CategoryDisplayContext } from "../../contexts/CategoryContext";
 
 const SkeletonRow = () => (
-  <tr className="animate-pulse border-b border-blue-100 dark:border-blue-800/30">
-    {[...Array(4)].map((_, i) => (
-      <td key={i} className="border px-3 py-3">
-        <div className="h-4 w-full rounded bg-blue-100 dark:bg-blue-800/40"></div>
-      </td>
-    ))}
-  </tr>
+    <tr className="animate-pulse border-b border-blue-100 dark:border-blue-800/30">
+        {[...Array(4)].map((_, i) => (
+            <td
+                key={i}
+                className="border px-3 py-3"
+            >
+                <div className="h-4 w-full rounded bg-blue-100 dark:bg-blue-800/40"></div>
+            </td>
+        ))}
+    </tr>
 );
 
 const CategoryTable = () => {
@@ -99,9 +102,7 @@ const CategoryTable = () => {
                         ) : categories && categories.length > 0 ? (
                             categories.map((cat, index) => (
                                 <tr key={cat._id}>
-                                    <td className="border px-3 py-2">
-                                        {(currentPage - 1) * itemsPerPage + index + 1}
-                                    </td>
+                                    <td className="border px-3 py-2">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                                     <td className="border px-3 py-2">{cat.name}</td>
                                     <td className="border px-3 py-2">{cat.description}</td>
                                     <td className="border px-3 py-2 text-center">
@@ -118,18 +119,23 @@ const CategoryTable = () => {
                                         >
                                             <Pencil className="h-4 w-4" />
                                         </button>
-                                        <button
+                                        {/*
+                                                        <button
                                             onClick={() => handleDelete(cat._id)}
                                             className="text-red-500 hover:text-red-700"
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </button>
+                                        */}
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="4" className="px-3 py-4 text-center text-gray-500">
+                                <td
+                                    colSpan="4"
+                                    className="px-3 py-4 text-center text-gray-500"
+                                >
                                     No categories found.
                                 </td>
                             </tr>
@@ -141,8 +147,7 @@ const CategoryTable = () => {
             {!loading && isTotalPages > 1 && (
                 <div className="mt-4 flex flex-col items-center justify-between gap-3 sm:flex-row">
                     <div className="text-sm text-gray-700 dark:text-gray-300">
-                        Showing <span className="font-medium">{startEntry}</span> to{" "}
-                        <span className="font-medium">{endEntry}</span> of{" "}
+                        Showing <span className="font-medium">{startEntry}</span> to <span className="font-medium">{endEntry}</span> of{" "}
                         <span className="font-medium">{TotalCategories}</span> entries
                     </div>
                     <div className="flex gap-1">

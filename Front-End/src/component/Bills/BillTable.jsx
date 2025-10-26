@@ -470,6 +470,7 @@ function BillTable() {
                                                     <Wallet className="h-4 w-4 stroke-green-500 dark:stroke-green-300" />
                                                 </button>
                                             )}
+                                            {/*
                                             {role !== "doctor" && role !== "staff" && (
                                                 <button
                                                     onClick={() => deleteBill(bill._id)}
@@ -478,7 +479,7 @@ function BillTable() {
                                                 >
                                                     <Trash2 className="h-4 w-4 stroke-red-500 dark:stroke-red-300" />
                                                 </button>
-                                            )}
+                                            )}*/}
                                         </div>
                                     </td>
                                 </tr>

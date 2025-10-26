@@ -81,11 +81,8 @@ const Benefits = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative py-8 sm:py-12 md:py-16 lg:py-20 bg-gray-100 overflow-hidden"
+      className="relative py-8 sm:py-12 md:py-16 lg:py-20 bg-blue-100 overflow-hidden"
     >
-      {/* Decorative Blurs */}
-      <div className="absolute -top-12 -left-12 w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-blue-200 blur-3xl opacity-30 rounded-full"></div>
-      <div className="absolute bottom-0 right-0 w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-purple-300 blur-3xl opacity-20 rounded-full"></div>
 
       <div className="container w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid gap-8 sm:gap-10 md:gap-12 lg:gap-16 lg:grid-cols-2 items-center">

@@ -1,5 +1,6 @@
 import { ArrowRight, Clock, BarChart3, CheckCircle } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import dashboardImage from "../../assets/dental.jpg";
 import AuthFormModal from "../../component/Login/Login";
 
@@ -31,23 +32,68 @@ const Hero = () => {
                     {/* Left: Text & CTA */}
                     <div className="space-y-7 sm:space-y-8">
                         <div className="space-y-4 sm:space-y-5">
-                            <h1 className="text-3xl font-extrabold leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
-                                <span>Doc. Saclolo</span>
+                            {/* Animated Heading */}
+                            <motion.h1
+                                className="text-3xl font-extrabold leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
+                                initial="hidden"
+                                animate="visible"
+                                variants={{
+                                    hidden: {},
+                                    visible: {
+                                        transition: {
+                                            staggerChildren: 0.15,
+                                            delayChildren: 0.2,
+                                        },
+                                    },
+                                }}
+                            >
+                                <motion.span
+                                    variants={{
+                                        hidden: { opacity: 0, y: 20 },
+                                        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+                                    }}
+                                >
+                                    Doc. Saclolo
+                                </motion.span>
                                 <br />
-                                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
+                                <motion.span
+                                    className="bg-gradient-to-r from-blue-600  to-teal-600 bg-clip-text text-transparent"
+                                    variants={{
+                                        hidden: { opacity: 0, y: 20 },
+                                        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+                                    }}
+                                >
                                     Dental Care
-                                </span>
+                                </motion.span>
                                 <br />
-                                <span>System</span>
-                            </h1>
+                                <motion.span
+                                    variants={{
+                                        hidden: { opacity: 0, y: 20 },
+                                        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+                                    }}
+                                >
+                                    System
+                                </motion.span>
+                            </motion.h1>
 
-                            <p className="max-w-2xl text-sm leading-relaxed text-white sm:text-base md:text-lg">
+                            {/* Animated Subtitle */}
+                            <motion.p
+                                className="max-w-2xl text-sm leading-relaxed text-white sm:text-base md:text-lg"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+                            >
                                 Transform your dental practice with comprehensive patient monitoring, seamless appointment management, and real-time
                                 analytics that drive better patient outcomes.
-                            </p>
+                            </motion.p>
                         </div>
 
-                        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                        {/* Animated CTA Button */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
+                        >
                             <button
                                 onClick={() => setShowLogin(true)}
                                 className="group relative transform overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl sm:px-6 sm:py-3 md:px-8 md:py-4 md:text-base"
@@ -58,7 +104,7 @@ const Hero = () => {
                                     <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 sm:h-4 sm:w-4 md:h-5 md:w-5" />
                                 </div>
                             </button>
-                        </div>
+                        </motion.div>
 
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 md:gap-5">
                             {[
@@ -153,7 +199,7 @@ const Hero = () => {
                     preserveAspectRatio="none"
                 >
                     <path
-                        fill="#f3f4f6"
+                        fill="#dbeafe"
                         d="M0,40 L500,40 L820,400 L1000,600 L1000,200 L0,150 Z"
                     />
                 </svg>

@@ -570,13 +570,14 @@ exports.DisplayPrescription = AsyncErrorHandler(async (req, res) => {
         },
       },
 
-      // Project final output (retain medications as array)
+      // Project final output
       {
         $project: {
           _id: 1,
           appointment_id: 1,
-          medications: 1, // keep full medications array
+          medications: 1,
           fileUrl: 1,
+          createdAt: 1, // ✅ Ensure this is included
           patient_id: "$Appointment_info.patient_id",
           patient_name: {
             $cond: {
@@ -591,14 +592,13 @@ exports.DisplayPrescription = AsyncErrorHandler(async (req, res) => {
               else: "N/A",
             },
           },
-          patient_address: {
-            $ifNull: ["$Patient_info.address", "N/A"],
-          },
+          patient_address: { $ifNull: ["$Patient_info.address", "N/A"] },
           appointment_date: "$Appointment_info.appointment_date",
         },
-      },{
-      $sort: { createdAt: -1 } // <- Latest treatment first
-    }
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
     ]);
 
     return res.status(200).json({

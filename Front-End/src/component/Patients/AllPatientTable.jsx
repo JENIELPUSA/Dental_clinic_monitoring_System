@@ -211,6 +211,7 @@ const AllPatientTable = () => {
                                             >
                                                 <PencilIcon className="h-4 w-4 stroke-blue-500 dark:stroke-blue-300" />
                                             </button>
+                                            {/*
                                             {role !== "staff" && (
                                                 <button
                                                     onClick={(e) => {
@@ -222,7 +223,7 @@ const AllPatientTable = () => {
                                                 >
                                                     <TrashIcon className="h-4 w-4 stroke-red-500 dark:stroke-red-300" />
                                                 </button>
-                                            )}
+                                            )}*/}
                                         </div>
                                     </td>
                                 </tr>

@@ -211,7 +211,7 @@ const TreatmentTable = () => {
                                     <td className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-300">
                                         {formatCurrency(treatment.treatment_cost)}
                                     </td>
-                                    {role !== "staff"&& role !== "patient" && (
+                                    {role !== "staff" && role !== "patient" && (
                                         <td className="bg-transparent p-3 align-top">
                                             <div className="flex gap-2">
                                                 <button
@@ -220,12 +220,13 @@ const TreatmentTable = () => {
                                                 >
                                                     <PencilIcon className="h-4 w-4" />
                                                 </button>
+                                                {/*
                                                 <button
                                                     onClick={() => handleDeleteTreatment(treatment._id)}
                                                     className="rounded bg-transparent p-1.5 text-red-500 hover:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-300/10"
                                                 >
                                                     <TrashIcon className="h-4 w-4" />
-                                                </button>
+                                                </button>*/}
                                             </div>
                                         </td>
                                     )}

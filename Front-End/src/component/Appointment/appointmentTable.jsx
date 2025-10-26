@@ -19,7 +19,7 @@ const AppointmentTable = () => {
         fetchAppointmentData,
         TotalAppointment,
         loading,
-        setCurrentPage
+        setCurrentPage,
     } = useContext(AppointmentDisplayContext);
 
     const [searchFilters, setSearchFilters] = useState({
@@ -183,9 +183,15 @@ const AppointmentTable = () => {
                             <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Address</th>
                             <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Date of Birth</th>
                             <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Doctor Name</th>
-                            <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Doctor Contact Number</th>
-                            <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Appointment Date</th>
-                            <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Appointment Status</th>
+                            <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
+                                Doctor Contact Number
+                            </th>
+                            <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
+                                Appointment Date
+                            </th>
+                            <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
+                                Appointment Status
+                            </th>
                             <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Specialty</th>
                             <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Action</th>
                         </tr>
@@ -274,6 +280,8 @@ const AppointmentTable = () => {
                                                 </button>
                                             )}
 
+                                            {/*
+
                                             {role === "admin" && (
                                                 <button
                                                     onClick={() => handleDelete(app._id)}
@@ -282,7 +290,7 @@ const AppointmentTable = () => {
                                                 >
                                                     <Trash className="h-4 w-4 stroke-current" />
                                                 </button>
-                                            )}
+                                            )}*/}
                                         </div>
                                     </td>
                                 </tr>
