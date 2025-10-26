@@ -8,12 +8,12 @@ const Footer = () => {
     ];
 
     return (
-        <footer className="bg-muted border-border border-t py-8">
+        <footer className="bg-muted border-border border-t py-8 bg-gradient-to-br from-blue-50 via-indigo-50 to-white ">
             <div className="container mx-auto flex flex-col items-center justify-between gap-6 px-6 md:flex-row lg:px-8">
                 {/* Branding */}
                 <div className="flex items-center gap-3">
                     <div className="bg-gradient-hero flex h-10 w-10 items-center justify-center rounded-xl">
-                        <Monitor className="h-6 w-6 text-white" />
+                        <Monitor className="h-6 w-6 text-black" />
                     </div>
                     <div>
                         <h1 className="text-foreground text-lg font-bold">Doc. Saclolo</h1>

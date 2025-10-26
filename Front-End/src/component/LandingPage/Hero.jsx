@@ -1,23 +1,19 @@
-import { ArrowRight, Clock, BarChart3 } from "lucide-react";
+import { ArrowRight, Clock, BarChart3, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import dashboardImage from "../../assets/dental.jpg";
 import AuthFormModal from "../../component/Login/Login";
-import { CheckCircle } from "lucide-react";
 
 const Hero = () => {
-    // 1. I-manage ang state para sa modal
     const [showLogin, setShowLogin] = useState(false);
 
     return (
-        <section className="relative flex min-h-screen items-center overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 px-10">
-            {/* Enhanced Background Elements */}
-            <div className="absolute inset-0">
-                {/* Animated gradient orbs */}
-                <div className="absolute left-1/4 top-1/4 h-72 w-72 animate-pulse rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20 blur-3xl"></div>
-                <div className="absolute bottom-1/4 right-1/4 h-96 w-96 animate-pulse rounded-full bg-gradient-to-r from-teal-400/15 to-blue-400/15 blur-3xl delay-1000"></div>
-                <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 transform animate-pulse rounded-full bg-gradient-to-r from-indigo-400/10 to-cyan-400/10 blur-2xl delay-500"></div>
+        <section className="relative flex min-h-screen items-center overflow-hidden bg-transparent px-4 sm:px-6 md:px-8">
+            {/* Animated Orbs & Grid Background */}
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute left-1/4 top-1/4 h-40 w-40 animate-pulse rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20 blur-3xl sm:h-60 sm:w-60 md:h-72 md:w-72"></div>
+                <div className="absolute bottom-1/4 right-1/4 h-56 w-56 animate-pulse rounded-full bg-gradient-to-r from-teal-400/15 to-blue-400/15 blur-3xl delay-1000 sm:h-80 sm:w-80 md:h-96 md:w-96"></div>
+                <div className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 transform animate-pulse rounded-full bg-gradient-to-r from-indigo-400/10 to-cyan-400/10 blur-2xl delay-500 sm:h-56 sm:w-56 md:h-64 md:w-64"></div>
 
-                {/* Grid pattern */}
                 <div className="absolute inset-0 opacity-5">
                     <div
                         className="h-full w-full"
@@ -29,130 +25,138 @@ const Hero = () => {
                 </div>
             </div>
 
-            <div className="container relative z-10 mx-auto px-6 lg:px-8">
-                <div className="grid items-center gap-16 lg:grid-cols-2">
-                    {/* Enhanced Content */}
-                    <div className="space-y-10">
-                        {/* Enhanced Heading */}
-                        <div className="space-y-6">
-                            <h1 className="text-5xl font-extrabold leading-tight lg:text-7xl">
-                                <span className="text-gray-900">Doc. Saclolo</span>
+            {/* Main Content */}
+            <div className="container relative z-10 mx-auto w-full max-w-7xl">
+                <div className="grid items-center gap-10 py-10 sm:gap-12 sm:py-14 md:gap-16 md:py-16 lg:grid-cols-2 lg:py-20">
+                    {/* Left: Text & CTA */}
+                    <div className="space-y-7 sm:space-y-8">
+                        <div className="space-y-4 sm:space-y-5">
+                            <h1 className="text-3xl font-extrabold leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
+                                <span>Doc. Saclolo</span>
                                 <br />
                                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
                                     Dental Care
                                 </span>
                                 <br />
-                                <span className="text-gray-900">System</span>
+                                <span>System</span>
                             </h1>
 
-                            <p className="max-w-2xl text-xl leading-relaxed text-gray-600 lg:text-2xl">
+                            <p className="max-w-2xl text-sm leading-relaxed text-white sm:text-base md:text-lg">
                                 Transform your dental practice with comprehensive patient monitoring, seamless appointment management, and real-time
                                 analytics that drive better patient outcomes.
                             </p>
                         </div>
 
-                        {/* Enhanced Key Benefits */}
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                            <button
+                                onClick={() => setShowLogin(true)}
+                                className="group relative transform overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl sm:px-6 sm:py-3 md:px-8 md:py-4 md:text-base"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-blue-800 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                                <div className="relative flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
+                                    <span>Login</span>
+                                    <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 sm:h-4 sm:w-4 md:h-5 md:w-5" />
+                                </div>
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 md:gap-5">
                             {[
                                 { icon: Clock, title: "Real-time", subtitle: "Live monitoring", color: "from-blue-500 to-blue-600" },
                                 { icon: BarChart3, title: "Analytics", subtitle: "Smart insights", color: "from-purple-500 to-purple-600" },
                             ].map((benefit, index) => (
                                 <div
                                     key={index}
-                                    className="group cursor-pointer"
+                                    className="group"
                                 >
-                                    <div className="flex transform items-center gap-4 rounded-xl border border-white/20 bg-white/70 p-4 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                                    <div className="flex transform items-center gap-2.5 rounded-xl border border-white/20 bg-white/70 p-2.5 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-3 md:p-4">
                                         <div
-                                            className={`h-12 w-12 bg-gradient-to-r ${benefit.color} flex items-center justify-center rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-110`}
+                                            className={`h-9 w-9 flex-shrink-0 bg-gradient-to-r ${benefit.color} flex items-center justify-center rounded-xl shadow transition-transform duration-300 group-hover:scale-110 sm:h-10 sm:w-10 md:h-12 md:w-12`}
                                         >
-                                            <benefit.icon className="h-6 w-6 text-white" />
+                                            <benefit.icon className="h-4 w-4 text-white sm:h-5 sm:w-5 md:h-6 md:w-6" />
                                         </div>
                                         <div>
-                                            <p className="text-lg font-bold text-gray-900">{benefit.title}</p>
-                                            <p className="text-gray-600">{benefit.subtitle}</p>
+                                            <p className="text-sm font-bold text-gray-900 sm:text-base md:text-lg">{benefit.title}</p>
+                                            <p className="text-xs text-gray-600 sm:text-sm md:text-base">{benefit.subtitle}</p>
                                         </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
-
-                        {/* Enhanced CTA Buttons */}
-                        <div className="flex flex-col gap-4 sm:flex-row">
-                            <button
-                                // 2. Idagdag ang onClick handler para lumabas ang modal
-                                onClick={() => setShowLogin(true)}
-                                className="group relative transform overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-blue-800 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                                <div className="relative flex items-center justify-center gap-3">
-                                    <span>Login</span>
-                                    <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-                                </div>
-                            </button>
-                        </div>
                     </div>
 
-                    {/* Enhanced Hero Image Section */}
-                    <div className="relative">
-                        {/* Main Image Container */}
-                        <div className="relative">
-                            {/* Main Image Container */}
-                            <div className="group relative">
-                                <div className="absolute -inset-4 rounded-3xl bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 opacity-30 blur-xl transition-opacity duration-300 group-hover:opacity-50"></div>
-                                <div className="relative overflow-hidden rounded-3xl bg-white p-2 shadow-2xl">
-                                    <div className="flex aspect-[4/3] items-center justify-center rounded-2xl bg-gray-100">
-                                        <img
-                                            src={dashboardImage}
-                                            alt="Dashboard Preview"
-                                            className="h-full w-full rounded-2xl object-cover"
-                                        />
+                    {/* Right: Image Preview */}
+                    <div className="relative mt-8 sm:mt-10 lg:mt-0">
+                        <div className="group relative mx-auto max-w-lg">
+                            <div className="absolute -inset-2.5 rounded-3xl bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 opacity-30 blur-xl transition-opacity duration-300 group-hover:opacity-50 sm:-inset-3"></div>
+                            <div className="relative overflow-hidden rounded-3xl bg-white p-1.5 shadow-2xl sm:p-2">
+                                <div className="flex aspect-[4/3] items-center justify-center rounded-2xl bg-gray-100">
+                                    <img
+                                        src={dashboardImage}
+                                        alt="Dashboard Preview"
+                                        className="h-full w-full rounded-2xl object-cover"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Floating Cards - Hidden on small screens */}
+                        <div className="hidden sm:block">
+                            <div className="absolute -bottom-5 -left-5 animate-pulse rounded-2xl border border-gray-100 bg-white p-3 shadow-2xl backdrop-blur-sm sm:-bottom-6 sm:-left-6 sm:p-4 md:-bottom-8 md:-left-8 md:p-6">
+                                <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4">
+                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 sm:h-10 sm:w-10 md:h-12 md:w-12">
+                                        <CheckCircle className="h-4 w-4 text-white sm:h-5 sm:w-5 md:h-6 md:w-6" />
+                                    </div>
+                                    <div>
+                                        <p className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-xl font-black text-transparent sm:text-2xl md:text-3xl">
+                                            98%
+                                        </p>
+                                        <p className="text-xs font-medium text-gray-600 sm:text-sm md:text-base">Patient Satisfaction</p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Enhanced Floating Cards */}
-                        <div className="absolute -bottom-8 -left-8 animate-pulse rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl backdrop-blur-sm">
-                            <div className="flex items-center gap-4">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-green-500 to-emerald-600">
-                                    <CheckCircle className="h-6 w-6 text-white" />
-                                </div>
-                                <div>
-                                    <p className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-3xl font-black text-transparent">
-                                        98%
-                                    </p>
-                                    <p className="font-medium text-gray-600">Patient Satisfaction</p>
+                            <div className="absolute -right-5 -top-5 rounded-2xl border border-gray-100 bg-white p-3 shadow-2xl backdrop-blur-sm sm:-right-6 sm:-top-6 sm:p-4 md:-right-8 md:-top-8 md:p-5">
+                                <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
+                                    <div className="relative">
+                                        <div className="absolute h-2.5 w-2.5 animate-ping rounded-full bg-gradient-to-r from-green-400 to-emerald-500 sm:h-3 sm:w-3 md:h-4 md:w-4"></div>
+                                        <div className="h-2.5 w-2.5 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 sm:h-3 sm:w-3 md:h-4 md:w-4"></div>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-900 sm:text-base md:text-lg">Live Monitoring</p>
+                                        <p className="text-[10px] text-gray-600 sm:text-xs md:text-sm">12 patients active</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="absolute -right-8 -top-8 rounded-2xl border border-gray-100 bg-white p-5 shadow-2xl backdrop-blur-sm">
-                            <div className="flex items-center gap-3">
-                                <div className="relative">
-                                    <div className="absolute h-4 w-4 animate-ping rounded-full bg-gradient-to-r from-green-400 to-emerald-500"></div>
-                                    <div className="h-4 w-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-600"></div>
-                                </div>
-                                <div>
-                                    <p className="font-bold text-gray-900">Live Monitoring</p>
-                                    <p className="text-sm text-gray-600">12 patients active</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Additional Floating Element */}
-                        <div className="absolute -right-6 top-1/2 -translate-y-1/2 transform rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white shadow-xl">
-                            <div className="text-center">
-                                <p className="text-2xl font-bold">RealTime</p>
-                                <p className="text-xs opacity-90">Realtime Notification</p>
+                            <div className="absolute -right-3 top-1/2 -translate-y-1/2 transform rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 p-2.5 text-center text-white shadow-lg sm:-right-4 sm:rounded-xl sm:p-3 md:-right-6 md:p-4">
+                                <p className="text-sm font-bold sm:text-base md:text-lg">RealTime</p>
+                                <p className="text-[9px] opacity-90 sm:text-[10px] md:text-xs">Realtime Notification</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                {/* 3. Ilipat ang AuthFormModal sa loob ng return statement ng component */}
+
+                {/* Login Modal */}
                 <AuthFormModal
                     isOpen={showLogin}
                     onClose={() => setShowLogin(false)}
                 />
+            </div>
+
+            {/* Wave at bottom */}
+            <div className="absolute bottom-0 left-0 right-0">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 1440 150"
+                    className="h-auto w-full"
+                    preserveAspectRatio="none"
+                >
+                    <path
+                        fill="#f3f4f6"
+                        d="M0,40 L500,40 L820,400 L1000,600 L1000,200 L0,150 Z"
+                    />
+                </svg>
             </div>
         </section>
     );

@@ -46,7 +46,7 @@ export const navbarLinks = [
             },
 
              {
-                label: "Bills",
+                label: "Payments",
                 icon: Banknote,
                 path: "/dashboard/bill",
             },

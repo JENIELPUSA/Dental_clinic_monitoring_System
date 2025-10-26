@@ -268,8 +268,9 @@ const generatePDFContent = (doc, prescription, appointment) => {
       const rowHeight = 75;
       const currentY = doc.y;
 
-      // Check if need new page
-      if (currentY + rowHeight > pageHeight - 130) {
+      // Check if need new page - with better space calculation for footer
+      const spaceNeeded = rowHeight + 120; // 120px for signature + footer
+      if (currentY + spaceNeeded > pageHeight - margin) {
         doc.addPage();
         doc.y = margin + 20;
       }
@@ -336,8 +337,14 @@ const generatePDFContent = (doc, prescription, appointment) => {
 
   // ========== SPECIAL INSTRUCTIONS ==========
   if (prescription.special_instructions) {
-    // Check for page space
-    if (doc.y > pageHeight - 150) {
+    // Calculate space needed for special instructions
+    const testHeight = doc.heightOfString(prescription.special_instructions, {
+      width: pageWidth - margin * 2 - 20
+    });
+    const instructionsHeight = testHeight + 40;
+    
+    // Check for page space including footer
+    if (doc.y + instructionsHeight + 100 > pageHeight - margin) {
       doc.addPage();
       doc.y = margin + 20;
     }
@@ -345,70 +352,62 @@ const generatePDFContent = (doc, prescription, appointment) => {
     doc.moveDown(0.5);
     
     const instY = doc.y;
+    const boxHeight = instructionsHeight;
+    
+    // Draw instruction box
     doc.fillColor('#fff4e6')
       .strokeColor('#ffa726')
       .lineWidth(1)
-      .roundedRect(margin, instY, pageWidth - margin * 2, 'auto', 5);
-    
-    doc.fillColor('#f57c00').fontSize(10).font('Helvetica-Bold');
-    doc.text('⚠ Special Instructions:', margin + 10, instY + 10);
-    doc.moveDown(0.3);
-    
-    doc.fillColor(textGray).fontSize(9).font('Helvetica');
-    const textHeight = doc.heightOfString(prescription.special_instructions, {
-      width: pageWidth - margin * 2 - 20
-    });
-    
-    doc.fillColor('#fff4e6')
-      .strokeColor('#ffa726')
-      .lineWidth(1)
-      .roundedRect(margin, instY, pageWidth - margin * 2, textHeight + 35, 5)
+      .roundedRect(margin, instY, pageWidth - margin * 2, boxHeight, 5)
       .fillAndStroke();
     
+    // Instruction content
     doc.fillColor('#f57c00').fontSize(10).font('Helvetica-Bold');
     doc.text('⚠ Special Instructions:', margin + 10, instY + 10);
     
     doc.fillColor(textGray).fontSize(9).font('Helvetica');
-    doc.text(prescription.special_instructions, margin + 10, instY + 28, {
+    doc.text(prescription.special_instructions, margin + 10, instY + 25, {
       width: pageWidth - margin * 2 - 20,
       align: 'left'
     });
     
-    doc.y = instY + textHeight + 35;
+    doc.y = instY + boxHeight;
     doc.moveDown(1);
   }
 
-  // ========== SIGNATURE SECTION ==========
-  const signatureBoxHeight = 55;
-  const footerHeight = 40;
-  const minSpaceNeeded = signatureBoxHeight + footerHeight + 10;
+  // ========== FOOTER SECTION - COMPLETELY REWORKED ==========
   
-  // Check if enough space for signature
-  if (doc.y > pageHeight - minSpaceNeeded - 30) {
+  // Define footer heights
+  const signatureHeight = 55;
+  const footerTextHeight = 20;
+  const totalFooterHeight = signatureHeight + footerTextHeight + 30; // +30 for spacing
+  
+  // Check if we need a new page for the footer
+  if (doc.y + totalFooterHeight > pageHeight - margin) {
     doc.addPage();
-    doc.y = margin + 20;
+    doc.y = margin;
   }
   
-  // Add more spacing before signature (push it lower)
-  doc.moveDown(2);
+  // ========== SIGNATURE AREA ==========
+  // Position signature area with consistent spacing
+  const signatureY = Math.max(doc.y, pageHeight - totalFooterHeight);
+  doc.y = signatureY;
   
-  // Position signature lower on page
-  const targetSigY = Math.max(doc.y, pageHeight - minSpaceNeeded - 20);
-  doc.y = targetSigY;
-
-  const sigY = doc.y;
+  // Add some space before signature
+  doc.moveDown(0.5);
   
-  // Signature box with responsive positioning
   const sigBoxWidth = 170;
   const sigBoxX = pageWidth - margin - sigBoxWidth;
+  const currentSigY = doc.y;
   
+  // Signature box
   doc.strokeColor(borderGray)
     .lineWidth(1)
-    .rect(sigBoxX, sigY, sigBoxWidth, signatureBoxHeight)
+    .rect(sigBoxX, currentSigY, sigBoxWidth, signatureHeight)
     .stroke();
   
   // Signature line
-  const sigLineY = sigY + 22;
+  const sigLineY = currentSigY + 22;
   doc.moveTo(sigBoxX + 10, sigLineY)
     .lineTo(sigBoxX + sigBoxWidth - 10, sigLineY)
     .strokeColor(textGray)
@@ -417,7 +416,7 @@ const generatePDFContent = (doc, prescription, appointment) => {
   
   // Label above line
   doc.fontSize(7).fillColor('#888888').font('Helvetica');
-  doc.text('Authorized Signature', sigBoxX + 10, sigY + 8);
+  doc.text('Authorized Signature', sigBoxX + 10, currentSigY + 8);
   
   // Doctor name below line
   doc.fontSize(9).font('Helvetica-Bold').fillColor(textGray);
@@ -433,30 +432,27 @@ const generatePDFContent = (doc, prescription, appointment) => {
     align: 'left'
   });
 
-  // Footer - always at bottom with proper spacing (responsive)
+  // ========== FOOTER TEXT - FIXED POSITION ==========
+  // Always position footer text at the bottom of the page
+  const fixedFooterY = pageHeight - 30;
+  
+  // Footer divider line
+  doc.strokeColor(borderGray)
+    .lineWidth(0.5)
+    .moveTo(margin, fixedFooterY - 12)
+    .lineTo(pageWidth - margin, fixedFooterY - 12)
+    .stroke();
+  
+  // Footer text - always at the same position
   const footerText = 'This is a computer-generated prescription. Please verify with your healthcare provider.';
-  const footerFontSize = 7;
-  const footerY = pageHeight - 35;
   
-  doc.fontSize(footerFontSize).fillColor('#888888').font('Helvetica-Oblique');
-  
-  // Calculate text width to ensure it fits
-  const footerTextWidth = pageWidth - (margin * 2);
-  const textHeight = doc.heightOfString(footerText, { width: footerTextWidth });
-  
-  // Adjust position if text wraps
-  const adjustedFooterY = textHeight > 10 ? pageHeight - 45 : footerY;
-  
-  doc.text(
-    footerText,
-    margin,
-    adjustedFooterY,
-    { 
-      align: 'center', 
-      width: footerTextWidth,
-      lineGap: 2
-    }
-  );
+  doc.fontSize(7)
+    .fillColor('#666666')
+    .font('Helvetica-Oblique')
+    .text(footerText, margin, fixedFooterY - 8, {
+      align: 'center',
+      width: pageWidth - (margin * 2)
+    });
 };
 
 const drawRxSymbol = (doc, x, y, size = 40) => {
@@ -473,6 +469,8 @@ const drawRxSymbol = (doc, x, y, size = 40) => {
   
   doc.restore();
 };
+
+
 
 const getPrescriptionWithDetails = async (prescriptionId) => {
   const result = await Prescription.aggregate([

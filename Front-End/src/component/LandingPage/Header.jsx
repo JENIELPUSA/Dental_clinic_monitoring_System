@@ -10,15 +10,15 @@ const Header = () => {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 w-full max-w-7xl mx-auto">
             {/* Logo */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-hero rounded-xl flex items-center justify-center">
                 <Monitor className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">DentalClinic</h1>
-                <p className="text-xs text-muted-foreground">Monitoring System</p>
+                <h1 className="text-xl font-bold text-foreground text-white">DentalClinic</h1>
+                <p className="text-xs text-muted-foreground text-white">Monitoring System</p>
               </div>
             </div>
             {/* Mobile Menu Button */}
