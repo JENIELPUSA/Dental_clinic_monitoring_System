@@ -1,10 +1,12 @@
 import { CheckCircle, Clock, Shield, Smile, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+
+// Placeholder images - replace with your actual images
 import brushingImage from "../../assets/imagehero1.jpg";
 import checkupImage from "../../assets/imagehero2.jpg";
 import clockImage from "../../assets/imagehero3.jpg";
 import healthyImage from "../../assets/imagehero4.jpg";
-import Dashboard from "../../assets/imagehero.JPG";
+const Dashboard = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600";
 
 const Benefits = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -81,18 +83,17 @@ const Benefits = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative py-8 sm:py-12 md:py-16 lg:py-20 bg-blue-100 overflow-hidden"
+      className="relative py-6 sm:py-8 md:py-10 lg:py-12 bg-blue-100 overflow-hidden"
     >
-
-      <div className="container w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid gap-8 sm:gap-10 md:gap-12 lg:gap-16 lg:grid-cols-2 items-center">
+      <div className="container w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-[50]">
+        <div className="grid gap-6 sm:gap-7 md:gap-8 lg:gap-10 lg:grid-cols-2 items-center">
           {/* LEFT: Text + Carousel */}
           <div
-            className={`space-y-6 sm:space-y-7 md:space-y-8 transition-opacity duration-700 ${
+            className={`space-y-4 sm:space-y-5 md:space-y-6 transition-opacity duration-700 ${
               isVisible ? "opacity-100" : "opacity-0"
             }`}
           >
-            <div className="text-center lg:text-left">
+            <div className="text-center lg:text-left break-words">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight text-slate-900">
                 Keep Your{" "}
                 <span className="text-blue-600 block sm:inline">Smile Bright</span>{" "}
@@ -101,7 +102,7 @@ const Benefits = () => {
                 </span>
               </h2>
 
-              <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-600 max-w-lg mx-auto lg:mx-0 mt-3 sm:mt-4 md:mt-5 lg:mt-6">
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-600 max-w-lg mx-auto lg:mx-0 mt-3 sm:mt-4 md:mt-5 lg:mt-6 break-words">
                 Discover the perfect mix of technology and dental care — designed to make your smile healthier,
                 brighter, and more confident than ever before.
               </p>
@@ -118,13 +119,15 @@ const Benefits = () => {
                     <img
                       src={benefit.image}
                       alt={benefit.title}
-                      className="rounded-lg w-full h-28 sm:h-32 md:h-36 lg:h-40 object-cover mb-2.5 sm:mb-3"
+                      className="rounded-lg w-full h-28 sm:h-32 md:h-36 lg:h-40 object-cover object-center mb-2.5 sm:mb-3"
                     />
-                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-slate-800 flex items-center gap-1.5 sm:gap-2">
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-slate-800 flex items-center gap-1.5 sm:gap-2 break-words">
                       <benefit.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-blue-600" />
                       {benefit.title}
                     </h3>
-                    <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 mt-1 sm:mt-1.5">{benefit.description}</p>
+                    <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 mt-1 sm:mt-1.5 break-words">
+                      {benefit.description}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -133,14 +136,12 @@ const Benefits = () => {
               <button
                 onClick={prevBenefit}
                 className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-1.5 rounded-full shadow-md hover:bg-white transition-colors sm:left-3"
-                aria-label="Previous benefit"
               >
                 <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-700" />
               </button>
               <button
                 onClick={nextBenefit}
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-1.5 rounded-full shadow-md hover:bg-white transition-colors sm:right-3"
-                aria-label="Next benefit"
               >
                 <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-700" />
               </button>
@@ -154,7 +155,6 @@ const Benefits = () => {
                     className={`h-1 w-1 rounded-full transition-all duration-300 ${
                       activeBenefit === index ? "bg-blue-600 w-3" : "bg-gray-300"
                     }`}
-                    aria-label={`Go to benefit ${index + 1}`}
                   />
                 ))}
               </div>
@@ -167,53 +167,54 @@ const Benefits = () => {
               isVisible ? "opacity-100" : "opacity-0"
             }`}
           >
-            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-white/30">
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-white/30 w-full max-w-full">
               <img
                 src={Dashboard}
                 alt="Dashboard Preview"
-                className="w-full h-auto"
+                className="w-full h-auto object-contain object-center max-w-full"
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-purple-500/10 pointer-events-none"></div>
-            </div>
 
-            {/* Desktop Floating Metrics */}
-            <div className="hidden lg:block">
-              {floatingMetrics.map((metric, index) => {
-                const IconComponent = metric.icon;
-                return (
-                  <div
-                    key={index}
-                    className={`absolute bg-white/90 backdrop-blur-sm p-2.5 sm:p-3 rounded-xl shadow-lg border border-white/20 transition-all duration-500 ${
-                      activeMetric === index ? "scale-105 shadow-xl" : "scale-100"
-                    }`}
-                    style={{
-                      top: index === 0 ? "-0.625rem" : "50%",
-                      right: "-0.625rem",
-                      transform: index === 1 ? "translateY(-50%)" : "none",
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      <IconComponent className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${metric.color}`} />
-                      <div>
-                        <p className={`text-xs sm:text-sm font-bold ${metric.color}`}>{metric.value}</p>
-                        <p className="text-[9px] sm:text-[10px] text-slate-600 whitespace-nowrap">{metric.label}</p>
+              {/* Floating Metrics */}
+              <div className="hidden lg:block">
+                {floatingMetrics.map((metric, index) => {
+                  const IconComponent = metric.icon;
+                  return (
+                    <div
+                      key={index}
+                      className={`absolute bg-white/90 backdrop-blur-sm p-2.5 sm:p-3 rounded-xl shadow-lg border border-white/20 transition-all duration-500 ${
+                        activeMetric === index ? "scale-105 shadow-xl" : "scale-100"
+                      }`}
+                      style={{
+                        top: index === 0 ? "1rem" : "auto",
+                        bottom: index === 1 ? "1rem" : "auto",
+                        right: "1rem",
+                        zIndex: 10,
+                      }}
+                    >
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <IconComponent className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${metric.color}`} />
+                        <div className="break-words">
+                          <p className={`text-xs sm:text-sm font-bold ${metric.color}`}>{metric.value}</p>
+                          <p className="text-[9px] sm:text-[10px] text-slate-600 whitespace-nowrap">{metric.label}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
             {/* Mobile/Tablet Metrics */}
-            <div className="flex justify-center gap-2.5 sm:gap-3 mt-3 sm:mt-4 lg:hidden">
+            <div className="flex justify-center gap-2.5 sm:gap-3 mt-3 sm:mt-4 lg:hidden flex-wrap">
               {floatingMetrics.map((metric, index) => {
                 const IconComponent = metric.icon;
                 return (
                   <div
                     key={index}
-                    className="bg-white/90 backdrop-blur-sm p-2.5 sm:p-3 rounded-xl shadow border border-white/20 flex-1 max-w-[120px] sm:max-w-[130px]"
+                    className="bg-white/90 backdrop-blur-sm p-2.5 sm:p-3 rounded-xl shadow border border-white/20 flex-1 max-w-[130px] min-w-[100px]"
                   >
-                    <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 break-words">
                       <IconComponent className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${metric.color}`} />
                       <div>
                         <p className={`text-xs sm:text-sm font-bold ${metric.color}`}>{metric.value}</p>
@@ -229,7 +230,7 @@ const Benefits = () => {
 
         {/* Features Grid */}
         <div
-          className={`mt-8 sm:mt-10 md:mt-12 lg:mt-16 transition-opacity duration-700 delay-300 ${
+          className={`mt-6 sm:mt-7 md:mt-8 lg:mt-10 transition-opacity duration-700 delay-300 ${
             isVisible ? "opacity-100" : "opacity-0"
           }`}
         >
@@ -240,7 +241,7 @@ const Benefits = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="flex items-start gap-1.5 sm:gap-2 p-2.5 sm:p-3 md:p-4 rounded-xl bg-white/60 hover:bg-white shadow-sm transition-all duration-300 hover:shadow-md"
+                className="flex items-start gap-1.5 sm:gap-2 p-2.5 sm:p-3 md:p-4 rounded-xl bg-white/60 hover:bg-white shadow-sm transition-all duration-300 hover:shadow-md break-words"
               >
                 <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span className="text-[10px] sm:text-xs md:text-sm text-slate-700">{feature.text}</span>

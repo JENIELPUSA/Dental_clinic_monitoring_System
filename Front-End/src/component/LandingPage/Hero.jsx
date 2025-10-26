@@ -182,14 +182,12 @@ const Hero = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Login Modal */}
+            </div>
+              {/* Login Modal */}
                 <AuthFormModal
                     isOpen={showLogin}
                     onClose={() => setShowLogin(false)}
                 />
-            </div>
-
             {/* Wave at bottom */}
             <div className="absolute bottom-0 left-0 right-0">
                 <svg
@@ -205,6 +203,7 @@ const Hero = () => {
                 </svg>
             </div>
         </section>
+        
     );
 };
 
