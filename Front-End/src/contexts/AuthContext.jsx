@@ -104,8 +104,6 @@ export const AuthProvider = ({ children }) => {
 
     // Remove Axios headers
     delete axios.defaults.headers.common["Authorization"];
-
-    window.location.href = "/"; 
   };
 
   return (

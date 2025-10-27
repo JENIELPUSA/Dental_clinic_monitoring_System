@@ -93,40 +93,33 @@ function ProgressImageUploader({ isOpen, onClose, onSave, initialData }) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-4 bg-black bg-opacity-70 overflow-y-auto"
+          className="fixed inset-0 z-[1000] flex items-start justify-center p-4 pt-8 bg-black bg-opacity-70 overflow-y-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           <motion.div
-            initial={{ scale: 0.7, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.7, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            // 👇 Responsive width: mas lapad sa landscape/tablet
-            className="relative w-full max-w-lg sm:max-w-xl md:max-w-2xl rounded-lg bg-white p-4 sm:p-6 shadow-2xl dark:bg-gray-900"
+            initial={{ scale: 0.85, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.85, opacity: 0, y: 20 }}
+            transition={{ duration: 0.25 }}
+            className="w-full max-w-md rounded-xl bg-white p-4 shadow-xl dark:bg-gray-900"
           >
-            <button
-              onClick={onClose}
-              className="absolute right-3 top-3 text-2xl font-bold text-gray-600 hover:text-red-500 dark:text-gray-300 dark:hover:text-red-400 sm:right-4 sm:top-4 sm:text-3xl"
-            >
-              &times;
-            </button>
-            <h2 className="mb-4 text-center text-xl sm:text-2xl md:text-3xl font-extrabold text-blue-600 dark:text-blue-400">
+            <h2 className="mb-4 text-center text-lg font-extrabold text-blue-600 dark:text-blue-400 sm:text-xl">
               📸 Treatment Result & Progress
             </h2>
 
             <div className="space-y-4">
               {/* Result Type */}
               <div>
-                <label className="mb-1 block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                   Result Type
                 </label>
                 <select
                   name="resultType"
                   value={progressForm.resultType}
                   onChange={handleFormChange}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs sm:text-sm shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white h-11"
                 >
                   {RESULT_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -138,7 +131,7 @@ function ProgressImageUploader({ isOpen, onClose, onSave, initialData }) {
 
               {/* Overall Notes */}
               <div>
-                <label className="mb-1 block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                   Overall Notes (Treatment Result)
                 </label>
                 <textarea
@@ -146,25 +139,25 @@ function ProgressImageUploader({ isOpen, onClose, onSave, initialData }) {
                   value={progressForm.overallNotes}
                   onChange={handleFormChange}
                   rows="2"
-                  className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-xs sm:text-sm shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600"
+                  className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white min-h-[44px]"
                 ></textarea>
               </div>
 
               <hr className="dark:border-gray-700" />
-              <h3 className="text-sm sm:text-base font-semibold text-gray-800 dark:text-white pt-2">
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-white pt-2">
                 Current Progress Details (Optional Images)
               </h3>
 
               {/* Stage */}
               <div>
-                <label className="mb-1 block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                   Stage
                 </label>
                 <select
                   name="stage"
                   value={progressForm.stage}
                   onChange={handleFormChange}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs sm:text-sm shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white h-11"
                 >
                   {STAGE_OPTIONS.map((stage) => (
                     <option key={stage} value={stage}>
@@ -176,7 +169,7 @@ function ProgressImageUploader({ isOpen, onClose, onSave, initialData }) {
 
               {/* Description */}
               <div>
-                <label className="mb-1 block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                   Description (Progress Note)
                 </label>
                 <textarea
@@ -184,26 +177,26 @@ function ProgressImageUploader({ isOpen, onClose, onSave, initialData }) {
                   value={progressForm.description}
                   onChange={handleFormChange}
                   rows="2"
-                  className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-xs sm:text-sm shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-600"
+                  className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white min-h-[44px]"
                 ></textarea>
               </div>
 
-              {/* Image Upload - Responsive Grid */}
+              {/* Image Upload - Responsive */}
               <div className="border-t pt-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                   {/* Before */}
                   <div>
-                    <label className="mb-1 block text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-200">
+                    <label className="mb-1 block text-xs font-semibold text-gray-800 dark:text-gray-200">
                       Before Image
                     </label>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => handleFileChange(e, "before")}
-                      className="block w-full text-xs sm:text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-gray-700 dark:file:text-white dark:text-gray-400"
+                      className="block w-full text-xs text-gray-500 file:mr-2 file:rounded-lg file:border-0 file:bg-violet-50 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-violet-700 hover:file:bg-violet-100 focus:outline-none dark:file:bg-gray-700 dark:file:text-white dark:text-gray-400"
                     />
                     {progressForm.beforeFileName && (
-                      <p className="mt-1 text-xs text-green-600 dark:text-green-400 truncate">
+                      <p className="mt-1 truncate text-xs text-green-600 dark:text-green-400">
                         Selected: {progressForm.beforeFileName}
                       </p>
                     )}
@@ -211,17 +204,17 @@ function ProgressImageUploader({ isOpen, onClose, onSave, initialData }) {
 
                   {/* After */}
                   <div>
-                    <label className="mb-1 block text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-200">
+                    <label className="mb-1 block text-xs font-semibold text-gray-800 dark:text-gray-200">
                       After Image
                     </label>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => handleFileChange(e, "after")}
-                      className="block w-full text-xs sm:text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-gray-700 dark:file:text-white dark:text-gray-400"
+                      className="block w-full text-xs text-gray-500 file:mr-2 file:rounded-lg file:border-0 file:bg-violet-50 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-violet-700 hover:file:bg-violet-100 focus:outline-none dark:file:bg-gray-700 dark:file:text-white dark:text-gray-400"
                     />
                     {progressForm.afterFileName && (
-                      <p className="mt-1 text-xs text-green-600 dark:text-green-400 truncate">
+                      <p className="mt-1 truncate text-xs text-green-600 dark:text-green-400">
                         Selected: {progressForm.afterFileName}
                       </p>
                     )}
@@ -229,13 +222,22 @@ function ProgressImageUploader({ isOpen, onClose, onSave, initialData }) {
                 </div>
               </div>
 
-              {/* Save Button */}
-              <button
-                onClick={handleSave}
-                className="w-full rounded-lg bg-blue-600 px-4 py-2.5 sm:py-3 font-bold text-white shadow-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-sm sm:text-base"
-              >
-                Confirm Result & Progress Data
-              </button>
+              {/* Action Buttons: Cancel + Confirm */}
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 h-11 sm:w-auto"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="w-full rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 h-11 sm:w-auto"
+                >
+                  Confirm Result & Progress Data
+                </button>
+              </div>
             </div>
           </motion.div>
         </motion.div>

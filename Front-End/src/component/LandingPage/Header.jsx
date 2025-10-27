@@ -21,28 +21,7 @@ const Header = () => {
                 <p className="text-xs text-muted-foreground text-white">Monitoring System</p>
               </div>
             </div>
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 text-muted-foreground hover:text-primary transition-colors"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
           </div>
-
-          {/* Mobile Navigation */}
-          {isMenuOpen && (
-            <div className="md:hidden py-6 border-t border-border">
-              <div className="mt-6 space-y-3">
-                <button
-                  className="w-full px-4 py-2 rounded text-foreground border border-gray-300 hover:bg-gray-100 transition"
-                  onClick={() => setShowLogin(true)}
-                >
-                  Login
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </header>
 

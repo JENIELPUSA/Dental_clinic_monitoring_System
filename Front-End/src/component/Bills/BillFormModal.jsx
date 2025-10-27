@@ -7,7 +7,7 @@ import { BillDisplayContext } from "../../contexts/BillContext/BillContext";
 
 const ToggleSwitch = ({ label, isOn, handleToggle, disabled }) => {
   return (
-    <div className="mb-6">
+    <div className="mb-4">
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-gray-700 dark:text-blue-300">
           {label}
@@ -26,13 +26,13 @@ const ToggleSwitch = ({ label, isOn, handleToggle, disabled }) => {
               disabled={disabled}
             />
             <div
-              className={`toggle-path w-12 h-6 rounded-full shadow-inner ${
+              className={`w-11 h-6 rounded-full shadow-inner ${
                 isOn ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
               }`}
             ></div>
             <div
-              className={`toggle-circle absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-200 ease-in-out ${
-                isOn ? "translate-x-6" : ""
+              className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-200 ease-in-out ${
+                isOn ? "translate-x-5" : ""
               }`}
             ></div>
           </div>
@@ -64,10 +64,9 @@ const BillFormModal = ({
 
       if (isPdfGenerationAllowed) {
         await GeneratePdf(formData.patient_id);
-        console.log("Generated PDF for:", formData.patient_id);
       }
 
-      setIsPdfGenerationAllowed(false); // reset toggle
+      setIsPdfGenerationAllowed(false);
       closeModal();
     } catch (err) {
       console.error("Error submitting bill:", err);
@@ -84,20 +83,20 @@ const BillFormModal = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[999] flex items-center justify-center bg-gray-600 bg-opacity-75 p-4 dark:bg-gray-900 dark:bg-opacity-85"
+          className="fixed inset-0 z-[999] flex items-start justify-center overflow-y-auto bg-gray-600 bg-opacity-75 p-4 pt-8 dark:bg-gray-900 dark:bg-opacity-85"
         >
           <motion.div
-            initial={{ scale: 0.9, y: -50, opacity: 0 }}
+            initial={{ scale: 0.9, y: 20, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.9, y: 50, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:border dark:border-blue-800/50 dark:bg-gray-800 md:p-8"
+            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full max-w-md rounded-xl bg-white p-4 shadow-2xl dark:border dark:border-blue-800/50 dark:bg-gray-800"
           >
-            <h2 className="mb-6 text-center text-3xl font-bold text-gray-800 dark:text-blue-200">
+            <h2 className="mb-4 text-center text-xl font-bold text-gray-800 dark:text-blue-200 sm:text-2xl">
               {currentBill ? "Edit Bill" : "Add New Bill"}
             </h2>
 
-            <form onSubmit={onSubmit}>
+            <form onSubmit={onSubmit} className="space-y-4">
               <SearchableSelect
                 label="Treatment"
                 name="treatment_id"
@@ -118,29 +117,31 @@ const BillFormModal = ({
                 icon={User}
               />
 
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300">
+              {/* Bill Date */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-blue-300 mb-1">
                   Bill Date
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400 dark:text-blue-400" />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400 dark:text-blue-400 w-4 h-4" />
                   <input
                     type="date"
                     name="bill_date"
                     value={formData.bill_date}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-gray-300 p-3 pl-10 dark:border-blue-700 dark:bg-blue-900/30 dark:text-white"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 pl-10 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-blue-700 dark:bg-blue-900/30 dark:text-white h-11"
                   />
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300">
+              {/* Total Amount */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-blue-300 mb-1">
                   Total Amount
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400 dark:text-blue-400">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400 dark:text-blue-400 text-sm">
                     ₱
                   </span>
                   <input
@@ -152,17 +153,18 @@ const BillFormModal = ({
                     step="0.01"
                     readOnly
                     required
-                    className="w-full rounded-lg border border-gray-300 p-3 pl-10 dark:border-blue-700 dark:bg-blue-900/30 dark:text-white"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 pl-10 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-blue-700 dark:bg-blue-900/30 dark:text-white h-11"
                   />
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300">
+              {/* Amount Paid */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-blue-300 mb-1">
                   Amount Paid
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400 dark:text-blue-400">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400 dark:text-blue-400 text-sm">
                     ₱
                   </span>
                   <input
@@ -173,17 +175,18 @@ const BillFormModal = ({
                     min="0"
                     step="0.01"
                     required
-                    className="w-full rounded-lg border border-gray-300 p-3 pl-10 dark:border-blue-700 dark:bg-blue-900/30 dark:text-white"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 pl-10 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-blue-700 dark:bg-blue-900/30 dark:text-white h-11"
                   />
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300">
+              {/* Balance */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-blue-300 mb-1">
                   Balance
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400 dark:text-blue-400">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400 dark:text-blue-400 text-sm">
                     ₱
                   </span>
                   <input
@@ -191,21 +194,21 @@ const BillFormModal = ({
                     name="balance"
                     value={formData.balance}
                     readOnly
-                    className="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-3 pl-10 dark:border-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                    className="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 pl-10 text-sm dark:border-blue-700 dark:bg-blue-900/50 dark:text-blue-300 h-11"
                   />
                 </div>
               </div>
 
+              {/* Toggle */}
               <ToggleSwitch
                 label="Enable PDF Generation"
                 isOn={isPdfGenerationAllowed}
-                handleToggle={() =>
-                  setIsPdfGenerationAllowed((prev) => !prev)
-                }
+                handleToggle={() => setIsPdfGenerationAllowed((prev) => !prev)}
                 disabled={isLoading}
               />
 
-              <div className="flex justify-end gap-3">
+              {/* Action Buttons */}
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -213,14 +216,14 @@ const BillFormModal = ({
                     closeModal();
                   }}
                   disabled={isLoading}
-                  className="rounded-lg bg-gray-300 px-6 py-3 text-gray-800 hover:bg-gray-400 dark:bg-gray-600 dark:text-white"
+                  className="w-full rounded-lg bg-gray-300 px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-gray-400 disabled:opacity-70 dark:bg-gray-600 dark:text-white h-11 sm:w-auto"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="w-full rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-70 dark:bg-blue-700 dark:hover:bg-blue-600 h-11 sm:w-auto"
                 >
                   {currentBill ? "Save Changes" : "Add Bill"}
                 </button>

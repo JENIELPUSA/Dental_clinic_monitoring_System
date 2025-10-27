@@ -35,78 +35,99 @@ const ManageLayout = () => {
     },
   ];
 
-  // hide Staff tab kung role === staff
   const pages = role === "staff" 
     ? basePages.filter(p => p.name !== "Staff") 
     : basePages;
 
-  // default active page depende sa role
   const [activePage, setActivePage] = useState(
     role === "staff" ? "Patient" : "Staff"
   );
 
   const currentPage = pages.find(page => page.name === activePage);
+  const CurrentIcon = currentPage?.icon || Users;
 
   const pageContent = {
     Staff: (
-      <div className="space-y-8">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center shadow-xl">
-            <Users className="w-8 h-8 text-white" />
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex flex-col items-center text-center md:flex-row md:text-left md:items-start md:space-x-4">
+          <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center shadow-xl mb-3 md:mb-0">
+            <Users className="w-7 h-7 md:w-8 md:h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+            <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
               Staff Management
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">Manage hospital staff members</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1 md:mt-2 text-sm md:text-base">
+              Manage hospital staff members
+            </p>
           </div>
         </div>
-        <StaffTable/>
+        <div className="-mx-4 sm:-mx-6 md:-mx-8">
+          <StaffTable />
+        </div>
       </div>
     ),
 
     Patient: (
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-400 rounded-2xl flex items-center justify-center shadow-xl">
-            <Heart className="w-8 h-8 text-white" />
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex flex-col items-center text-center md:flex-row md:text-left md:items-start md:space-x-4">
+          <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-red-500 to-pink-400 rounded-2xl flex items-center justify-center shadow-xl mb-3 md:mb-0">
+            <Heart className="w-7 h-7 md:w-8 md:h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 to-pink-500 bg-clip-text text-transparent">
+            <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-red-600 to-pink-500 bg-clip-text text-transparent">
               Patient Records
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">Manage patient information and medical records</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1 md:mt-2 text-sm md:text-base">
+              Manage patient information and medical records
+            </p>
           </div>
         </div>
-        <AllPatientsLayout/>
+        {/*Sagad hanggang gilid */}
+        <div className="-mx-4 sm:-mx-6 md:-mx-8">
+          <AllPatientsLayout />
+        </div>
       </div>
     ),
 
     Doctors: (
-      <div className="space-y-8">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-400 rounded-2xl flex items-center justify-center shadow-xl">
-            <Stethoscope className="w-8 h-8 text-white" />
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex flex-col items-center text-center md:flex-row md:text-left md:items-start md:space-x-4">
+          <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 to-indigo-400 rounded-2xl flex items-center justify-center shadow-xl mb-3 md:mb-0">
+            <Stethoscope className="w-7 h-7 md:w-8 md:h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-500 bg-clip-text text-transparent">
+            <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-500 bg-clip-text text-transparent">
               Doctor Directory
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">Medical staff schedules and specializations</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1 md:mt-2 text-sm md:text-base">
+              Medical staff schedules and specializations
+            </p>
           </div>
         </div>
-        <DoctorLayout/>
+        {/* ✅ Sagad hanggang gilid */}
+        <div className="-mx-4 sm:-mx-6 md:-mx-8">
+          <DoctorLayout />
+        </div>
       </div>
     ),
   };
+
+  if (pages.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <p className="text-gray-600 dark:text-gray-300">No access allowed.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}
       <div className="sticky top-0 z-10 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <nav className="flex justify-center">
-            <div className="flex items-center space-x-2 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-2">
+            <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-1 sm:rounded-2xl sm:p-2">
               {pages.map((page) => {
                 const Icon = page.icon;
                 const isActive = activePage === page.name;
@@ -116,19 +137,18 @@ const ManageLayout = () => {
                     key={page.name}
                     onClick={() => setActivePage(page.name)}
                     className={`
-                      relative flex items-center space-x-2 px-6 py-3 rounded-xl font-medium
-                      transition-all duration-300 transform
+                      relative flex items-center justify-center sm:space-x-2
+                      w-full sm:w-auto px-3 py-2 sm:px-5 sm:py-3
+                      rounded-lg sm:rounded-xl font-medium text-sm sm:text-base
+                      transition-all duration-300
                       ${isActive
-                        ? `bg-gradient-to-r ${page.color} text-white shadow-lg scale-105`
-                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-gray-700/80 hover:scale-102'
+                        ? `bg-gradient-to-r ${page.color} text-white shadow-md sm:shadow-lg scale-[1.02]`
+                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-gray-700/80'
                       }
                     `}
                   >
                     <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
                     <span>{page.name}</span>
-                    {isActive && (
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
-                    )}
                   </button>
                 );
               })}
@@ -138,22 +158,30 @@ const ManageLayout = () => {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className={`
-          min-h-[600px] rounded-3xl p-8 shadow-xl border transition-all duration-500
-          ${currentPage.bgColor} ${currentPage.textColor} border-gray-200/50 dark:border-gray-700
+          min-h-[500px] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 
+          shadow-xl border transition-all duration-300
+          ${currentPage?.bgColor || 'bg-white'} 
+          ${currentPage?.textColor || 'text-gray-900'}
+          border-gray-200/50 dark:border-gray-700
         `}>
-          {pageContent[activePage]}
+          {currentPage ? pageContent[activePage] : <div className="text-center py-10">Select a tab</div>}
         </div>
       </main>
 
       {/* Floating Action Button */}
-      <div className="fixed bottom-8 right-8">
-        <button className={`
-          w-14 h-14 rounded-2xl shadow-2xl text-white transition-all duration-300 
-          hover:scale-110 hover:rotate-12 bg-gradient-to-r ${currentPage.color}
-        `}>
-          <currentPage.icon className="w-6 h-6 mx-auto" />
+      <div className="fixed bottom-6 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 z-10">
+        <button 
+          aria-label={`Go to ${activePage}`}
+          className={`
+            w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl 
+            shadow-lg sm:shadow-xl text-white 
+            transition-all duration-300 hover:scale-110 active:scale-95
+            bg-gradient-to-r ${currentPage?.color || 'from-gray-500 to-gray-600'}
+          `}
+        >
+          <CurrentIcon className="w-5 h-5 sm:w-6 sm:h-6 mx-auto" />
         </button>
       </div>
     </div>

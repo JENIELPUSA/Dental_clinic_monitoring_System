@@ -78,7 +78,7 @@ export const AppointmentDisplayProvider = ({ children }) => {
                 setCurrentPage(res.data.currentPage);
                 setTotalAppointment(res.data.totalAppointments);
             } else {
-                const filtered = fetchedData.filter((item) => item.doctor_id === linkId);
+                const filtered = fetchedData.filter((item) => item.doctor_info._id === linkId);
                 setAppointment(filtered);
             }
         } catch (error) {

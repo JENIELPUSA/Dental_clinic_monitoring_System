@@ -28,13 +28,13 @@ const Hero = () => {
 
             {/* Main Content */}
             <div className="container relative z-10 mx-auto w-full max-w-7xl">
-                <div className="grid items-center gap-10 py-10 sm:gap-12 sm:py-14 md:gap-16 md:py-16 lg:grid-cols-2 lg:py-20">
+                <div className="grid items-center gap-10 xs:gap-4 2xs:gap-0 xs:gap-0 py-10 sm:gap-12 sm:py-14 md:gap-16 md:py-16 lg:grid-cols-2 lg:py-20">
                     {/* Left: Text & CTA */}
                     <div className="space-y-7 sm:space-y-8">
                         <div className="space-y-4 sm:space-y-5">
                             {/* Animated Heading */}
                             <motion.h1
-                                className="text-3xl font-extrabold leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
+                                className="text-3xl font-extrabold leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl mt-12"
                                 initial="hidden"
                                 animate="visible"
                                 variants={{
@@ -132,7 +132,7 @@ const Hero = () => {
                     </div>
 
                     {/* Right: Image Preview */}
-                    <div className="relative mt-8 sm:mt-10 lg:mt-0">
+                    <div className="relative mt-8 sm:mt-5 lg:mt-0">
                         <div className="group relative mx-auto max-w-lg">
                             <div className="absolute -inset-2.5 rounded-3xl bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 opacity-30 blur-xl transition-opacity duration-300 group-hover:opacity-50 sm:-inset-3"></div>
                             <div className="relative overflow-hidden rounded-3xl bg-white p-1.5 shadow-2xl sm:p-2">

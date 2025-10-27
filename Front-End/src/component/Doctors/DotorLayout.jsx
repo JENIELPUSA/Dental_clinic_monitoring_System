@@ -3,7 +3,7 @@ import CalendarGuide from "../Schedule/CalendarGuide"; // Siguraduhin na ang pat
 
 function DoctorLayout() {
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-6 lg:p-6 xs:p-0 2xs:p-0">
 
       <div className="w-full flex flex-col md:flex-row gap-4">
         <div className="w-full md:w-96">

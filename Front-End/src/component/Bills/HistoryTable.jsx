@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { User } from "lucide-react";
 import { BillDisplayContext } from "../../contexts/BillContext/BillContext";
 
-// Debounce hook (kung wala sa ibang file)
+// Debounce hook
 const useDebounce = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -14,7 +14,7 @@ const useDebounce = (value, delay) => {
   return debouncedValue;
 };
 
-// Skeleton row (optional pero good UX)
+// Skeleton for Table (Desktop)
 const SkeletonRow = () => (
   <tr className="animate-pulse border-b border-blue-100 dark:border-blue-800/30">
     {[...Array(7)].map((_, i) => (
@@ -25,6 +25,19 @@ const SkeletonRow = () => (
   </tr>
 );
 
+// Skeleton for Mobile Cards
+const MobileSkeletonCard = () => (
+  <div className="animate-pulse rounded-lg border border-blue-100 p-4 dark:border-blue-800/30">
+    <div className="h-4 w-3/4 rounded bg-blue-100 dark:bg-blue-800/40 mb-2"></div>
+    <div className="h-3 w-full rounded bg-blue-100 dark:bg-blue-800/40 mb-1"></div>
+    <div className="h-3 w-5/6 rounded bg-blue-100 dark:bg-blue-800/40 mb-3"></div>
+    <div className="flex justify-between">
+      <div className="h-6 w-16 rounded bg-blue-100 dark:bg-blue-800/40"></div>
+      <div className="h-6 w-12 rounded bg-blue-100 dark:bg-blue-800/40"></div>
+    </div>
+  </div>
+);
+
 function HistoryTable() {
   const {
     isHistory,
@@ -33,7 +46,7 @@ function HistoryTable() {
     currentPage,
     loading,
     setCurrentPage,
-    fetchHistory, // 👈 dapat available ito sa context
+    fetchHistory,
   } = useContext(BillDisplayContext);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,7 +55,6 @@ function HistoryTable() {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  // Fetch from server whenever filters or page changes
   useEffect(() => {
     fetchHistory({
       page: currentPage,
@@ -54,7 +66,7 @@ function HistoryTable() {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1);
   };
 
   const handleFromChange = (e) => {
@@ -100,7 +112,7 @@ function HistoryTable() {
   };
 
   const totalPages = Number(isTotalPages) || 0;
-  const itemsPerPage = 5; // Dapat consistent sa server
+  const itemsPerPage = 5;
   const startEntry = TotalCount > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
   const endEntry = Math.min(currentPage * itemsPerPage, TotalCount);
 
@@ -110,7 +122,6 @@ function HistoryTable() {
     }
   };
 
-  // Pagination rendering (simple version)
   const renderPaginationItems = () => {
     const maxVisible = 5;
     const pages = [];
@@ -156,7 +167,8 @@ function HistoryTable() {
   };
 
   return (
-    <div className="w-full rounded-2xl bg-white p-6 shadow-md dark:border dark:border-blue-800/50 dark:bg-blue-900/20">
+    <div className="w-full rounded-2xl bg-white p-4 shadow-md dark:border dark:border-blue-800/50 dark:bg-blue-900/20 sm:p-6">
+      {/* Header */}
       <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-xl font-bold text-blue-800 dark:text-blue-200">Payment History</h2>
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
@@ -182,28 +194,37 @@ function HistoryTable() {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* DESKTOP: Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full border border-blue-200 text-sm dark:border-blue-800/50">
           <thead>
             <tr className="bg-blue-50 dark:bg-blue-900/30">
-              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Patient Name (ID)</th>
-              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Treatment Description</th>
-              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Bill Date & Time</th>
-              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Total Amount</th>
-              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Amount Paid</th>
-              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Balance</th>
-              <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Status</th>
+              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
+                Patient Name (ID)
+              </th>
+              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
+                Treatment Description
+              </th>
+              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
+                Bill Date & Time
+              </th>
+              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
+                Total Amount
+              </th>
+              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
+                Amount Paid
+              </th>
+              <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
+                Balance
+              </th>
+              <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <>
-                <SkeletonRow />
-                <SkeletonRow />
-                <SkeletonRow />
-                <SkeletonRow />
-                <SkeletonRow />
-              </>
+              [...Array(5)].map((_, i) => <SkeletonRow key={i} />)
             ) : isHistory && isHistory.length > 0 ? (
               isHistory.map((bill) => (
                 <tr key={bill._id} className="hover:bg-blue-50 dark:hover:bg-blue-900/20">
@@ -243,6 +264,60 @@ function HistoryTable() {
         </table>
       </div>
 
+      {/* MOBILE: List View (Cards) */}
+      <div className="md:hidden space-y-4">
+        {loading ? (
+          [...Array(5)].map((_, i) => <MobileSkeletonCard key={i} />)
+        ) : isHistory && isHistory.length > 0 ? (
+          isHistory.map((bill) => (
+            <div
+              key={bill._id}
+              className="rounded-lg border border-blue-100 bg-white p-4 shadow-sm dark:border-blue-800/30 dark:bg-blue-900/20"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <span className="font-medium text-blue-800 dark:text-blue-200">
+                      {bill.patient_first_name} {bill.patient_last_name}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">ID: {bill.patient_id}</p>
+                </div>
+                <div>{getStatusBadge(bill.payment_status)}</div>
+              </div>
+
+              <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                <p className="font-medium">{bill.treatment_description || "N/A"}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {formatDate(bill.treatment_date)}
+                </p>
+              </div>
+
+              <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+                  <p className="font-medium">₱{parseFloat(bill.total_amount || 0).toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Paid</p>
+                  <p className="font-medium">₱{parseFloat(bill.amount_paid || 0).toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Balance</p>
+                  <p className="font-medium">₱{parseFloat(bill.balance || 0).toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="py-8 text-center text-blue-800 dark:text-blue-200">
+            No history found.
+          </div>
+        )}
+      </div>
+
+      {/* Pagination */}
       {!loading && totalPages > 0 && TotalCount > 0 && (
         <div className="mt-4 flex flex-col items-center justify-between gap-2 sm:flex-row">
           <div className="text-sm text-blue-800 dark:text-blue-200">
@@ -250,18 +325,18 @@ function HistoryTable() {
             <span className="font-medium">{endEntry}</span> of{" "}
             <span className="font-medium">{TotalCount}</span> entries
           </div>
-          <div className="flex gap-1">
+          <div className="flex flex-wrap justify-center gap-1">
             <button
               onClick={() => paginate(1)}
               disabled={currentPage === 1}
-              className="rounded border px-3 py-1 text-blue-800 disabled:opacity-50 dark:border-blue-800/50 dark:text-blue-200"
+              className="rounded border px-2 py-1 text-blue-800 disabled:opacity-50 dark:border-blue-800/50 dark:text-blue-200 sm:px-3"
             >
               «
             </button>
             <button
               onClick={() => paginate(currentPage - 1)}
               disabled={currentPage === 1}
-              className="rounded border px-3 py-1 text-blue-800 disabled:opacity-50 dark:border-blue-800/50 dark:text-blue-200"
+              className="rounded border px-2 py-1 text-blue-800 disabled:opacity-50 dark:border-blue-800/50 dark:text-blue-200 sm:px-3"
             >
               ‹
             </button>
@@ -271,14 +346,14 @@ function HistoryTable() {
             <button
               onClick={() => paginate(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="rounded border px-3 py-1 text-blue-800 disabled:opacity-50 dark:border-blue-800/50 dark:text-blue-200"
+              className="rounded border px-2 py-1 text-blue-800 disabled:opacity-50 dark:border-blue-800/50 dark:text-blue-200 sm:px-3"
             >
               ›
             </button>
             <button
               onClick={() => paginate(totalPages)}
               disabled={currentPage === totalPages}
-              className="rounded border px-3 py-1 text-blue-800 disabled:opacity-50 dark:border-blue-800/50 dark:text-blue-200"
+              className="rounded border px-2 py-1 text-blue-800 disabled:opacity-50 dark:border-blue-800/50 dark:text-blue-200 sm:px-3"
             >
               »
             </button>

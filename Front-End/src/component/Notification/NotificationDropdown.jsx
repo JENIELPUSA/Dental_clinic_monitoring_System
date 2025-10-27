@@ -96,7 +96,7 @@ const NotificationDropdown = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 z-50 mt-2 flex max-h-[80vh] w-80 flex-col rounded-xl bg-white shadow-lg ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700"
+                        className="absolute right-0 z-[999] mt-2 flex max-h-[80vh] w-80 flex-col rounded-xl bg-white shadow-lg ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700"
                     >
                         <div className="flex items-center justify-between border-b border-gray-200 bg-blue-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
                             <div className="flex items-center gap-2">

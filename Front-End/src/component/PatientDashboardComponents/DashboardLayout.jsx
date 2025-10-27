@@ -18,7 +18,7 @@ const DashboardLayout = () => {
                 transition={{ duration: 0.5 }}
                 className="mx-auto overflow-hidden rounded-3xl bg-white shadow-xl transition-colors duration-500 dark:bg-gray-800 dark:shadow-2xl"
             >
-                <div className="grid grid-cols-1 gap-6 p-4 sm:p-6 lg:grid-cols-3 lg:p-8">
+                <div className="grid grid-cols-1 gap-6 p-4 xs:p-1 2xs:p-1 sm:p-6 lg:grid-cols-3 lg:p-8">
                     <motion.div
                         className="space-y-6 lg:col-span-2"
                         initial={{ opacity: 0, x: -50 }}
