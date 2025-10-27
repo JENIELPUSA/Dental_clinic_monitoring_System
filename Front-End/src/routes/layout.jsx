@@ -14,7 +14,7 @@ const Layout = () => {
     const isDesktopDevice = useMediaQuery("(min-width: 768px)");
 
     // Default collapsed to true regardless of device
-    const [collapsed, setCollapsed] = useState(true);
+    const [collapsed, setCollapsed] = useState(false);
 
     const sidebarRef = useRef(null);
 
