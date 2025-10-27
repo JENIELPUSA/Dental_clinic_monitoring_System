@@ -7,86 +7,114 @@ const axios = require("axios");
 const Appointment = require("../Models/appointmentSchema");
 const cloudinary = require("./../Utils/cloudinary")
 const PDFDocument = require("pdfkit");
+const AppointmentStepProcess = require("./../Models/AppointmentStepProcess");
 
-exports.createPrescription = AsyncErrorHandler(async (req, res) => {
-  const { appointment_id, medications, special_instructions, refills } = req.body;
+exports.createPrescription = async (req, res) => {
+  try {
+    const { appointment_id, medications, special_instructions, refills } = req.body;
 
-  console.log(req.body);
+    // Validate required fields
+    if (!appointment_id || !Array.isArray(medications) || medications.length === 0) {
+      return res.status(400).json({
+        message: "Missing required fields: appointment_id and medications[]"
+      });
+    }
 
-  // Validation
-  if (!appointment_id || !Array.isArray(medications) || medications.length === 0) {
-    return res.status(400).json({
-      message: "Missing required fields: appointment_id and medications[]"
-    });
-  }
+    for (const med of medications) {
+      const requiredFields = ['medication_name', 'dosage', 'frequency', 'start_date', 'end_date'];
+      for (const field of requiredFields) {
+        if (!med[field]) {
+          return res.status(400).json({
+            message: `Each medication must include: ${requiredFields.join(', ')}`
+          });
+        }
+      }
 
-  // Validate each medication
-  for (const med of medications) {
-    const requiredFields = ['medication_name', 'dosage', 'frequency', 'start_date', 'end_date'];
-    for (const field of requiredFields) {
-      if (!med[field]) {
+      const startDate = new Date(med.start_date);
+      const endDate = new Date(med.end_date);
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return res.status(400).json({ message: "Invalid date format in medication dates" });
+      }
+      if (startDate >= endDate) {
         return res.status(400).json({
-          message: `Each medication must include: ${requiredFields.join(', ')}`
+          message: `End date must be after start date for ${med.medication_name}`
         });
       }
     }
 
-    const startDate = new Date(med.start_date);
-    const endDate = new Date(med.end_date);
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return res.status(400).json({ message: "Invalid date format in medication dates" });
+    // Check appointment
+    const appointment = await Appointment.findById(appointment_id)
+      .populate('patient_id')
+      .populate('doctor_id');
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
     }
-    if (startDate >= endDate) {
-      return res.status(400).json({
-        message: `End date must be after start date for ${med.medication_name}`
+    if (appointment.appointment_status !== "Completed") {
+      return res.status(400).json({ 
+        message: "Prescription can only be added to a completed appointment" 
       });
     }
-  }
 
-  // Check appointment - POPULATE patient and doctor details
-  const appointment = await Appointment.findById(appointment_id)
-    .populate('patient_id')
-    .populate('doctor_id');
-  if (!appointment) {
-    return res.status(404).json({ message: "Appointment not found" });
-  }
-  if (appointment.appointment_status !== "Completed") {
-    return res.status(400).json({ 
-      message: "Prescription can only be added to a completed appointment" 
+    // Prepare prescription data
+    const prescriptionData = {
+      appointment_id,
+      medications: medications.map(m => ({
+        medication_name: m.medication_name.trim(),
+        dosage: m.dosage.trim(),
+        frequency: m.frequency.trim(),
+        start_date: new Date(m.start_date),
+        end_date: new Date(m.end_date),
+      })),
+      prescribed_date: new Date(),
+      ...(special_instructions && { special_instructions: special_instructions.trim() }),
+      ...(refills !== undefined && { refills: parseInt(refills, 10) })
+    };
+
+    // Create prescription
+    const prescription = await Prescription.create(prescriptionData);
+
+    // Generate and upload PDF
+    const pdfUrl = await generateAndUploadPrescriptionPDF(prescription, appointment);
+    prescription.fileUrl = pdfUrl;
+    await prescription.save();
+
+    // Update appointment steps
+    await AppointmentStepProcess.findOneAndUpdate(
+      { appointmentId: appointment_id },
+      {
+        $set: {
+          "steps.$[prescriptionStep].status": "completed",
+          "steps.$[completedStep].status": "in-progress",
+          currentStep: 5, 
+        },
+      },
+      {
+        arrayFilters: [
+          { "prescriptionStep.stepName": "Prescription" },
+          { "completedStep.stepName": "Completed" },
+        ],
+        new: true,
+      }
+    );
+
+    // Fetch full prescription with details
+    const prescriptionWithDetails = await getPrescriptionWithDetails(prescription._id);
+
+    // Send success response
+    return res.status(201).json({
+      status: "success",
+      message: "Prescription created successfully",
+      data: prescriptionWithDetails
+    });
+
+  } catch (error) {
+    console.error("Error creating prescription:", error);
+    return res.status(500).json({
+      status: "fail",
+      message: error.message || "Internal server error",
     });
   }
-
-  // Prepare prescription data
-  const prescriptionData = {
-    appointment_id,
-    medications: medications.map(m => ({
-      medication_name: m.medication_name.trim(),
-      dosage: m.dosage.trim(),
-      frequency: m.frequency.trim(),
-      start_date: new Date(m.start_date),
-      end_date: new Date(m.end_date),
-    })),
-    prescribed_date: new Date(),
-    ...(special_instructions && { special_instructions: special_instructions.trim() }),
-    ...(refills !== undefined && { refills: parseInt(refills, 10) })
-  };
-
-  const prescription = await Prescription.create(prescriptionData);
-
-  // Generate and upload PDF with appointment details
-  const pdfUrl = await generateAndUploadPrescriptionPDF(prescription, appointment);
-  prescription.fileUrl = pdfUrl;
-  await prescription.save();
-
-  // Fetch full prescription with populated details
-  const prescriptionWithDetails = await getPrescriptionWithDetails(prescription._id);
-
-  return res.status(201).json({
-    status: "success",
-    message: "Prescription created successfully",
-    data: prescriptionWithDetails
-  });
-});
+};
 
 const generateAndUploadPrescriptionPDF = async (prescription, appointment) => {
   const doc = new PDFDocument({ margin: 50, size: 'A4' });

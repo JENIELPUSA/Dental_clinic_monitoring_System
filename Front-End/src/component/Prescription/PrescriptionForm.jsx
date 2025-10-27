@@ -267,13 +267,7 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
                   <h5 className="font-semibold text-gray-900 dark:text-white text-sm">
                     {i + 1}. {m.medication_name}
                   </h5>
-                  <button
-                    type="button"
-                    onClick={() => setStep(i + 1)}
-                    className="text-blue-600 hover:text-blue-700 text-xs font-medium"
-                  >
-                    Edit
-                  </button>
+               
                 </div>
                 <div className="space-y-0.5 text-xs text-gray-600 dark:text-gray-400">
                   <div><span className="font-medium">Dosage:</span> {m.dosage}</div>

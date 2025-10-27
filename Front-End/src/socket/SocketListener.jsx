@@ -7,7 +7,9 @@ import { toast } from "react-toastify";
 import { SchedDisplayContext } from "../contexts/Schedule/ScheduleContext.jsx";
 import { TreatmentDisplayContext } from "../contexts/TreatmentContext/TreatmentContext.jsx";
 import { InventoryDisplayContext } from "../contexts/InventoryContext/InventoryContext.jsx";
+import { TrackingDisplayContext } from "../contexts/TrackProcessContext/TrackProcessContext.jsx";
 const SocketListener = () => {
+    const {fetchTrackingData}=useContext(TrackingDisplayContext)
     const { AddSocketTreatment } = useContext(TreatmentDisplayContext);
     const { AddSchedule, updateStatusSocketData, fetchSchedData } = useContext(SchedDisplayContext);
     const { role, linkId } = useAuth();
@@ -60,6 +62,7 @@ const SocketListener = () => {
                 if (exists) return prev;
                 return [formatNotification(data), ...prev];
             });
+            fetchTrackingData();
         };
 
         const handleNotificationReset = ({ count }) => {
@@ -89,11 +92,13 @@ const SocketListener = () => {
                 if (exists) return prev;
                 return [formatNotification(data), ...prev];
             });
+             fetchTrackingData();
         };
 
         const handleAppointmentUpdated = (data) => {
             updateAppointmentSocketData(data);
             fetchSchedData();
+             fetchTrackingData();
         };
 
         const handleStatusSched = (data) => {
@@ -103,10 +108,12 @@ const SocketListener = () => {
         const handleNewAppointment = (data) => {
             addAppointment(data);
             fetchSchedData();
+             fetchTrackingData();
         };
 
         const handleNewTreatment = (data) => {
             AddSocketTreatment(data);
+             fetchTrackingData();
         };
 
         const handleNewrelease = () => {
