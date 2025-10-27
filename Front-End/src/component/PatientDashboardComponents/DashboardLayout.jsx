@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion"; // ✅ import motion
+import React, { useState, useContext } from "react";
+import { motion } from "framer-motion";
+import { BarChart3 } from "lucide-react";
 import TreatmentPlan from "./TreatmentPlan";
 import PieChartModal from "./PieChartModal";
 import NextAppointCard from "./NextAppointCard";
@@ -8,8 +9,26 @@ import EducationGuide from "./EducationGuide";
 import FastAction from "./FastAction";
 import AvailableDoctor from "./AvailableDoctor";
 import BookingForm from "./BookingForm";
+import ProgressOverview from "../DoctorDashboard/ProgressOverview";
 
 const DashboardLayout = () => {
+    const [showProgress, setShowProgress] = useState(false);
+
+    // Floating Progress Button Component
+    const FloatingProgressButton = () => {
+        return (
+            <motion.button
+                className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl dark:bg-blue-500 dark:hover:bg-blue-600"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowProgress(true)}
+                aria-label="View Progress Statistics"
+            >
+                <BarChart3 size={24} className="text-white" />
+            </motion.button>
+        );
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 font-sans transition-colors duration-500 dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900">
             <motion.div
@@ -40,6 +59,15 @@ const DashboardLayout = () => {
                     </motion.div>
                 </div>
             </motion.div>
+
+            {/* Floating Progress Button */}
+            <FloatingProgressButton />
+
+            {/* Progress Overview Modal */}
+            <ProgressOverview 
+                isOpen={showProgress}
+                onClose={() => setShowProgress(false)}
+            />
         </div>
     );
 };

@@ -29,16 +29,24 @@ const ProgressOverview = ({ isOpen, onClose }) => {
   const [expandedId, setExpandedId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
-  const appointments = useMemo(() => {
-    return inventory
-      .filter((item) => role.toLowerCase() === "doctor" ? item.appointmentInfo?.doctor_id === linkId : true)
-      .map((item) => ({
-        _id: item._id || item.appointmentId,
-        appointmentId: item.appointmentId,
-        currentStep: item.currentStep || 1,
-        overallStatus: item.overallStatus || "Pending",
-      }));
-  }, [inventory, role, linkId]);
+ const appointments = useMemo(() => {
+  return inventory
+    .filter((item) => {
+      if (role.toLowerCase() === "doctor") {
+        return item.appointmentInfo?.doctor_id === linkId;
+      } else if (role.toLowerCase() === "patient") {
+        return item.appointmentInfo?.patient_id === linkId;
+      }
+      return true; // ibang roles: kunin lahat
+    })
+    .map((item) => ({
+      _id: item._id || item.appointmentId,
+      appointmentId: item.appointmentId,
+      currentStep: item.currentStep || 1,
+      overallStatus: item.overallStatus || "Pending",
+    }));
+}, [inventory, role, linkId]);
+
 
   const totalPages = Math.ceil(appointments.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
