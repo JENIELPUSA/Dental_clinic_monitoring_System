@@ -7,8 +7,9 @@ import { AppointmentDisplayContext } from "../../contexts/AppointmentContext/app
 import { TaskDisplayContext } from "../../contexts/TaskContext/TaskContext";
 import { CalendarCheck, ClipboardList, MessageSquare, Calendar } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
+
 const StaffLayout = () => {
-    const {linkId}=useContext(AuthContext)
+    const { linkId } = useContext(AuthContext);
     const { isTask } = useContext(TaskDisplayContext);
     const { appointment } = useContext(AppointmentDisplayContext);
     const appointments = appointment;
@@ -19,9 +20,6 @@ const StaffLayout = () => {
     const [totalTasks, setTotalTasks] = useState(0);
     const [newBookingsToday, setNewBookingsToday] = useState(0);
     const [completedAppointments, setCompletedAppointments] = useState(0);
-
-
-    console.log("USERID",linkId)
 
     const formatTime = (timeString) => {
         const [hours, minutes] = timeString.split(":");
@@ -39,7 +37,6 @@ const StaffLayout = () => {
 
     useEffect(() => {
         if (!appointments || !Array.isArray(appointments)) {
-            console.log("Appointment data not ready or invalid.");
             return;
         }
 
@@ -89,6 +86,7 @@ const StaffLayout = () => {
 
         const newBookingsCount = mappedAppointments.filter((appt) => appt.createdAtDate === todayFormatted).length;
         setNewBookingsToday(newBookingsCount);
+
         if (Array.isArray(isTask)) {
             setTotalTasks(isTask.length);
         }
@@ -109,42 +107,43 @@ const StaffLayout = () => {
 
     return (
         <motion.div
-            className="flex flex-col font-sans transition-colors duration-300"
+            className="flex flex-col font-sans transition-colors duration-300 min-h-0"
             initial={{ opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.8 }}
         >
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto px-2 2xs:px-0 xs:px-0 sm:px-6 py-2 2xs:py-0">
+                {/*Responsive Stat Cards Grid */}
                 <motion.div
-                    className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
+                    className="mb-6 grid grid-cols-1 2xs:grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 xs:gap-4"
                     initial={{ opacity: 0, y: -50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
                     <StatCard
-                        icon={<CalendarCheck size={32} />}
+                        icon={<CalendarCheck size={28} />}
                         title="Total Appointments"
                         value={totalAppointments}
                         trend={{ value: "8%", direction: "up" }}
                         description="Overall appointments managed"
                     />
                     <StatCard
-                        icon={<ClipboardList size={32} />}
+                        icon={<ClipboardList size={28} />}
                         title="Total Tasks"
                         value={totalTasks}
                         trend={{ value: "3%", direction: "up" }}
                         description="All tasks created in system"
                     />
                     <StatCard
-                        icon={<MessageSquare size={32} />}
+                        icon={<MessageSquare size={28} />}
                         title="Completed Appointments"
                         value={completedAppointments}
                         trend={{ value: "10%", direction: "up" }}
                         description="Successfully finished visits"
                     />
                     <StatCard
-                        icon={<Calendar size={32} />}
+                        icon={<Calendar size={28} />}
                         title="New Bookings Today"
                         value={newBookingsToday}
                         trend={{ value: "5%", direction: "up" }}
@@ -153,9 +152,10 @@ const StaffLayout = () => {
                 </motion.div>
 
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
+                    initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.6 }}
+                    className="space-y-6"
                 >
                     <TodayAppointmentsTable
                         todayAppointments={todayAppointments}

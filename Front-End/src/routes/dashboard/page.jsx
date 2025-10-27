@@ -12,12 +12,12 @@ const DashboardPage = () => {
     const { role } = useContext(AuthContext);
 
     return (
-        <div className="flex flex-col gap-4 xs:gap-2 2xs:gap-2 lg:gap-4  py-4 max-w-7xl mx-auto w-full">
-            <h1 className="text-2xl font-bold text-blue-800 dark:text-blue-200">
+        <div className="flex flex-col gap-1 2xs:gap-3 xs:gap-3 sm:gap-4 lg:gap-6 py-2 2xs:py-3 xs:py-4 sm:py-5 lg:py-6 max-w-7xl mx-auto w-full px-2 2xs:px-0 xs:px-0 sm:px-6">
+            <h1 className="text-xl 2xs:text-2xl sm:text-2xl md:text-3xl font-bold text-blue-800 dark:text-blue-200">
                 Welcome back, {role}!
             </h1>
 
-            <p className="text-sm text-gray-700 dark:text-blue-300">
+            <p className="text-[10px] 2xs:text-xs xs:text-sm text-gray-700 dark:text-blue-300 leading-relaxed">
                 {role === "admin"
                     ? "You're logged in as an Administrator. Here are the modules available to you:"
                     : role === "doctor"
@@ -29,80 +29,46 @@ const DashboardPage = () => {
                     : "Welcome! Please check your assigned modules."}
             </p>
 
-            {/* Admin Dashboard */}
+            {/* Admin Dashboard — Responsive Row/Column */}
             {role === "admin" && (
-                <div className="w-full">
-                    <div className="flex flex-col gap-6 lg:flex-row lg:gap-6">
-                        <div className="w-full lg:w-[35%]">
-                            <PieGraphandcard />
+                <div className="w-full min-h-0">
+                    <div className="flex flex-col gap-4 2xs:gap-5 xs:gap-6 lg:flex-row lg:gap-6 min-h-0">
+                        {/* Left: Stats + Pie Chart */}
+                        <div className="w-full lg:w-[35%] flex flex-col min-h-0">
+                            <div className="w-full h-full min-h-0 rounded-xl overflow-hidden">
+                                <PieGraphandcard />
+                            </div>
                         </div>
-                        <div className="w-full lg:w-[65%]">
-                            <LayoutGraphAndrecentAppoint />
+
+                        {/* Right: Graph + Appointments */}
+                        <div className="w-full lg:w-[65%] flex flex-col min-h-0">
+                            <div className="w-full h-full min-h-0 rounded-xl overflow-hidden">
+                                <LayoutGraphAndrecentAppoint />
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Patient Dashboard */}
+            {/* Other Roles — Full Width */}
             {role === "patient" && (
-                <div className="w-full">
+                <div className="w-full min-h-0">
                     <DashboardLayout />
                 </div>
             )}
 
-            {/* Staff Dashboard */}
             {role === "staff" && (
-                <div className="w-full">
+                <div className="w-full min-h-0">
                     <StaffLayout />
                 </div>
             )}
 
-            {/* Doctor Dashboard */}
             {role === "doctor" && (
-                <div className="w-full">
+                <div className="w-full min-h-0">
                     <DoctorDashboardLayout />
                 </div>
             )}
-
-            <Footer />
         </div>
     );
 };
-
-// StatCard component (na-retain, walang binago sa logic)
-const StatCard = ({ icon, title, value, trend, description }) => {
-    const trendDirection = trend?.direction || "up";
-    const trendValue = trend?.value || "0%";
-
-    return (
-        <div className="card bg-blue-50 p-3 dark:bg-blue-900/20 sm:p-4 rounded-xl">
-            <div className="flex items-center justify-between">
-                <div className="rounded-lg bg-blue-100 p-2 text-blue-600 dark:bg-blue-800/50 dark:text-blue-300">
-                    {icon}
-                </div>
-                <span
-                    className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${
-                        trendDirection === "up"
-                            ? "bg-blue-100 text-blue-800 dark:bg-blue-800/50 dark:text-blue-300"
-                            : "bg-blue-200 text-blue-800 dark:bg-blue-700/50 dark:text-blue-300"
-                    }`}
-                >
-                    <TrendingUp
-                        size={14}
-                        className={trendDirection === "down" ? "rotate-180 transform" : ""}
-                    />
-                    {trendValue}
-                </span>
-            </div>
-            <div className="mt-3 sm:mt-4">
-                <p className="text-xs text-blue-700 dark:text-blue-300 sm:text-sm">{title}</p>
-                <p className="text-xl font-bold text-blue-800 dark:text-blue-200 sm:text-2xl">{value}</p>
-                {description && (
-                    <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">{description}</p>
-                )}
-            </div>
-        </div>
-    );
-};
-
 export default DashboardPage;

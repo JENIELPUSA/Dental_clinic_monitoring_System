@@ -1,7 +1,6 @@
 import { useTheme } from "@/hooks/use-theme";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, PanelLeft, X } from "lucide-react"; // ✅ Added PanelLeft and X
 import PropTypes from "prop-types";
-import { motion } from "framer-motion";
 import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import NotificationDropdown from "../component/Notification/NotificationDropdown";
@@ -26,29 +25,14 @@ export const Header = ({ collapsed, setCollapsed }) => {
         <button
           className="relative flex size-10 items-center justify-center rounded-md text-blue-800 hover:text-blue-600 dark:text-blue-200 dark:hover:text-blue-300"
           onClick={() => setCollapsed(!collapsed)}
-          aria-label="Toggle Sidebar"
+          aria-label={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
-          <motion.div
-            className="relative w-6 h-5"
-            initial={false}
-            animate={collapsed ? "open" : "closed"}
-          >
-            <motion.span
-              className="absolute left-0 top-0 h-0.5 w-full bg-current"
-              variants={{ open: { rotate: 45, y: 8 }, closed: { rotate: 0, y: 0 } }}
-              transition={{ duration: 0.3 }}
-            />
-            <motion.span
-              className="absolute left-0 top-2 h-0.5 w-full bg-current"
-              variants={{ open: { opacity: 0 }, closed: { opacity: 1 } }}
-              transition={{ duration: 0.3 }}
-            />
-            <motion.span
-              className="absolute left-0 bottom-0 h-0.5 w-full bg-current"
-              variants={{ open: { rotate: -45, y: -8 }, closed: { rotate: 0, y: 0 } }}
-              transition={{ duration: 0.3 }}
-            />
-          </motion.div>
+          {/* ✅ Replaced animated lines with Lucide icons */}
+          {collapsed ? (
+            <PanelLeft size={20} className="text-current" />
+          ) : (
+            <X size={20} className="text-current" />
+          )}
         </button>
       </div>
 

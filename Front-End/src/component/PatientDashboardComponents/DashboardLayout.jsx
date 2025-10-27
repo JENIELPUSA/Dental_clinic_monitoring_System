@@ -20,7 +20,7 @@ const DashboardLayout = () => {
             >
                 <div className="grid grid-cols-1 gap-6 p-4 xs:p-1 2xs:p-1 sm:p-6 lg:grid-cols-3 lg:p-8">
                     <motion.div
-                        className="space-y-6 lg:col-span-2"
+                        className="space-y-6 2xs:space-y-0 xs:space-y-0  lg:col-span-2"
                         initial={{ opacity: 0, x: -50 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6 }}
@@ -30,7 +30,7 @@ const DashboardLayout = () => {
                         <NextAppointCard />
                     </motion.div>
                     <motion.div
-                        className="space-y-6 lg:col-span-1"
+                        className="space-y-6 xs:space-y-2 2xs:space-y-2  lg:col-span-1"
                         initial={{ opacity: 0, x: 50 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6 }}

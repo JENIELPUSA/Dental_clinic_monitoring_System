@@ -1,16 +1,12 @@
 import { motion } from "framer-motion";
+
 const DentalLoading = () => {
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center z-[999]
-                 bg-blue-950/70 backdrop-blur-sm
-                 text-blue-100 font-sans"
-    >
-      <div className="flex flex-col items-center justify-center space-y-8">
-        {/* Main Spinner */}
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-blue-950/70 backdrop-blur-sm p-4">
+      <div className="flex flex-col items-center justify-center space-y-4 sm:space-y-6">
+        {/* Main Spinner - Smaller on mobile */}
         <motion.div
-          className="w-24 h-24 rounded-full
-                     border-4 border-blue-700 border-t-blue-500"
+          className="h-16 w-16 rounded-full border-4 border-blue-700 border-t-blue-500 sm:h-24 sm:w-24"
           animate={{ rotate: 360 }}
           transition={{
             repeat: Infinity,
@@ -19,10 +15,9 @@ const DentalLoading = () => {
           }}
         />
 
-        {/* Loading Text */}
+        {/* Loading Text - Smaller on mobile */}
         <motion.p
-          className="text-2xl font-semibold tracking-wide text-blue-200
-                     mt-6"
+          className="text-center text-lg font-semibold tracking-wide text-blue-200 sm:text-2xl"
           initial={{ opacity: 0.5 }}
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}

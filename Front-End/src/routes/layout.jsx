@@ -5,6 +5,7 @@ import { useClickOutside } from "@/hooks/use-click-outside";
 
 import { Sidebar } from "@/layouts/sidebar";
 import { Header } from "@/layouts/header";
+import { Footer } from "@/layouts/footer";
 
 import { cn } from "@/utils/cn";
 import { useRef, useState } from "react";
@@ -43,6 +44,7 @@ const Layout = () => {
                 <div className="h-[calc(100vh-60px)] overflow-y-auto overflow-x-hidden p-6">
                     <Outlet />
                 </div>
+                <Footer/>
             </div>
         </div>
     );
