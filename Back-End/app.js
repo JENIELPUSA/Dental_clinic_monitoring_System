@@ -28,6 +28,7 @@ const Bill = require("./Routes/BillRoute");
 const Prescription = require("./Routes/PrescriptionRoute");
 
 const Treatment = require("./Routes/TreatmentSchema");
+const TrackingProcess = require("./Routes/TrackingProcessRoute")
 
 const Schedule = require("./Routes/ScheduleRoute");
 const Notification = require("./Routes/NotificationRoute");
@@ -64,16 +65,18 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl: process.env.CONN_STR,
-      ttl: 24 * 60 * 60, // 24 hours in seconds
+      ttl: 12 * 60 * 60,
     }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+      maxAge: 12 * 60 * 60 * 1000,
     },
+     rolling: true,
   })
 );
+ 
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -110,6 +113,9 @@ app.use("/api/v1/InventoryCategory", Category);
 app.use("/api/v1/Inventory", inventory);
 app.use("/api/v1/Release", release);
 app.use("/api/v1/Result", result);
+app.use("/api/v1/TrackProcess", TrackingProcess);
+
+
 
 
 

@@ -6,6 +6,7 @@ const sendEmail = require("../Utils/email");
 const User = require("./../Models/LogInDentalSchema");
 const Treatment = require("./../Models/Treatments"); //appointment_id
 const Prescription = require("./../Models/Prescription"); //appointment_id
+
 const PDFDocument = require("pdfkit");
 const {
   findValidScheduleAndSlot,
@@ -14,6 +15,8 @@ const {
   notifyByEmailAndDatabase,
   returnSlotOnCancel,
 } = require("../Controller/Services/AppointmentService");
+
+const AppointmentStepProcess = require("./../Models/AppointmentStepProcess");
 
 exports.createAppointment = AsyncErrorHandler(async (req, res) => {
   const {
@@ -37,6 +40,22 @@ exports.createAppointment = AsyncErrorHandler(async (req, res) => {
     appointment_status,
     slot_id,
     slot,
+  });
+
+   await AppointmentStepProcess.create({
+    appointmentId: appointment._id,
+    patientId: patient_id,
+    doctorId: doctor_id,
+    steps: [
+      { stepNumber: 1, stepName: "Appointment", status: "completed" },
+      { stepNumber: 2, stepName: "Confirmation", status: "pending" },
+      { stepNumber: 3, stepName: "Treatment", status: "pending" },
+      { stepNumber: 4, stepName: "Prescription", status: "pending" },
+      { stepNumber: 5, stepName: "Completed", status: "pending" },
+      { stepNumber: 6, stepName: "Payment", status: "pending" },
+    ],
+    currentStep: 2,
+    overallStatus: "in-progress",
   });
 
   const io = req.app.get("io");
@@ -292,6 +311,8 @@ exports.UpdateAppointment = AsyncErrorHandler(async (req, res, next) => {
   const { patient_id, doctor_id, appointment_date, appointment_status } =
     req.body;
 
+    console.log("APPOINTMENTSTATUSSSS HERE")
+
   const updateAppointment = await Appointment.findByIdAndUpdate(
     req.params.id,
     { patient_id, doctor_id, appointment_date, appointment_status },
@@ -387,6 +408,26 @@ exports.UpdateStatus = AsyncErrorHandler(async (req, res, next) => {
   }
 
   if (status === "Confirmed") {
+     await AppointmentStepProcess.findOneAndUpdate(
+      { appointmentId: updatedAppointment._id },
+      {
+        $set: {
+          "steps.$[appointmentStep].status": "completed",
+          "steps.$[confirmationStep].status": "in-progress",
+          currentStep: 2,
+        },
+      },
+      {
+        arrayFilters: [
+          { "appointmentStep.stepName": "Appointment" },
+          { "confirmationStep.stepName": "Confirmation" },
+        ],
+        new: true,
+      }
+    );
+
+    console.log(`Updated step process for appointment ${updatedAppointment._id}`);
+
     const targetUser = global.connectedUsers?.[patientId];
 
     if (targetUser && io) {
@@ -438,8 +479,28 @@ exports.UpdateStatus = AsyncErrorHandler(async (req, res, next) => {
     }
   }
 
+  if (status === "Completed") {
+    await AppointmentStepProcess.findOneAndUpdate(
+      { appointmentId: updatedAppointment._id },
+      {
+        $set: {
+          "steps.$[treatmentStep].status": "completed", 
+          "steps.$[prescriptionStep].status": "in-progress", 
+          currentStep: 4, 
+        },
+      },
+      {
+        arrayFilters: [
+          { "treatmentStep.stepName": "Treatment" },
+          { "prescriptionStep.stepName": "Prescription" },
+        ],
+        new: true,
+      }
+    );
+  }
+
   if (status === "Cancelled") {
-    // ✅ Step 3.1: Ibalik ang slot
+    //Step 3.1: Ibalik ang slot
     try {
       await returnSlotOnCancel(
         updatedAppointment.doctor_id,
@@ -451,7 +512,7 @@ exports.UpdateStatus = AsyncErrorHandler(async (req, res, next) => {
       console.error("❌ Failed to return slot:", err.message);
     }
 
-    // ✅ Step 3.2: Proceed with notifications
+    // Step 3.2: Proceed with notifications
     const message = {
       message: `An appointment has been canceled. Appointment ID: ${updatedAppointment._id}`,
       data: detailedAppointment,
@@ -508,7 +569,6 @@ exports.UpdateStatus = AsyncErrorHandler(async (req, res, next) => {
     }
   }
 
-  // 3. Re-assigned → Notify staff
   if (status === "Re-assigned") {
     const message = {
       message: "An appointment has been re-assigned.",

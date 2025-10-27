@@ -7,13 +7,11 @@ const axios = require("axios");
 const Appointment = require("../Models/appointmentSchema");
 const cloudinary = require("./../Utils/cloudinary")
 const PDFDocument = require("pdfkit");
+const AppointmentStepProcess = require("./../Models/AppointmentStepProcess");
 
 exports.createPrescription = AsyncErrorHandler(async (req, res) => {
   const { appointment_id, medications, special_instructions, refills } = req.body;
 
-  console.log(req.body);
-
-  // Validation
   if (!appointment_id || !Array.isArray(medications) || medications.length === 0) {
     return res.status(400).json({
       message: "Missing required fields: appointment_id and medications[]"
@@ -77,6 +75,24 @@ exports.createPrescription = AsyncErrorHandler(async (req, res) => {
   const pdfUrl = await generateAndUploadPrescriptionPDF(prescription, appointment);
   prescription.fileUrl = pdfUrl;
   await prescription.save();
+
+    await AppointmentStepProcess.findOneAndUpdate(
+    { appointmentId: appointment_id },
+    {
+      $set: {
+        "steps.$[prescriptionStep].status": "completed",
+        "steps.$[completedStep].status": "in-progress",
+        currentStep: 5, 
+      },
+    },
+    {
+      arrayFilters: [
+        { "prescriptionStep.stepName": "Prescription" },
+        { "completedStep.stepName": "Completed" },
+      ],
+      new: true,
+    }
+  );
 
   // Fetch full prescription with populated details
   const prescriptionWithDetails = await getPrescriptionWithDetails(prescription._id);

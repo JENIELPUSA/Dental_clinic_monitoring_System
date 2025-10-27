@@ -1,7 +1,6 @@
 import React, { useState, useContext, useMemo } from "react";
 import { Users, Calendar, Clock, Plus, ListPlus, CalendarCheck, XCircle, CheckCircle } from "lucide-react";
-
-import { motion } from "framer-motion"; // ✅ Import motion
+import { motion } from "framer-motion";
 
 import StatCard from "../DoctorDashboard/StatCard";
 import AppointmentTable from "../DoctorDashboard/AppointmentTable";
@@ -12,12 +11,17 @@ import ManagePatientsView from "../DoctorDashboard/ManagementPatientView";
 import { AppointmentDisplayContext } from "../../contexts/AppointmentContext/appointmentContext";
 import { AuthContext } from "../../contexts/AuthContext";
 
+// Import the new components
+import ProgressOverview from "./ProgressOverview";
+import FloatingProgressButton from "./FloatingProgressButton";
+
 const DoctorDashboardLayout = () => {
     const { linkId } = useContext(AuthContext);
     const { appointment, specificAppointment } = useContext(AppointmentDisplayContext);
 
     const [currentView, setCurrentView] = useState("dashboard");
     const [selectedDate, setSelectedDate] = useState("");
+    const [showProgress, setShowProgress] = useState(false);
 
     const filteredAppointments = useMemo(() => {
         return appointment.filter((appt) => appt.doctor_info?._id === linkId);
@@ -58,7 +62,7 @@ const DoctorDashboardLayout = () => {
             );
         }
         return (
-            <div className="space-y-8 xs:space-y-4 2xs:space-y-4">
+            <div className="space-y-8 xs:space-y-4 2xs:space-y-">
                 <motion.div
                     className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6 xs:gap-2 2xs:gap-3"
                     initial={{ opacity: 0, y: -40 }}
@@ -165,6 +169,13 @@ const DoctorDashboardLayout = () => {
             <div className="flex-1 overflow-y-auto">
                 <MainContent />
             </div>
+
+            <FloatingProgressButton onClick={() => setShowProgress(true)} />
+
+            <ProgressOverview 
+                isOpen={showProgress}
+                onClose={() => setShowProgress(false)}
+            />
         </div>
     );
 };

@@ -11,6 +11,7 @@ const { PassThrough } = require("stream");
 const BillingHistory = require("../Models/BllingHiistorySchema");
 const generateBillPDFAndSend = require("../Controller/Services/generateBillPDF");
 const Treatment = require("../Models/Treatments");
+const AppointmentStepProcess = require("./../Models/AppointmentStepProcess");
 
 exports.createBill = AsyncErrorHandler(async (req, res) => {
   const {
@@ -101,6 +102,7 @@ exports.createBill = AsyncErrorHandler(async (req, res) => {
         treatment_description: "$treatment_info.treatment_description",
         treatment_date: "$treatment_info.treatment_date",
         appointment_date: "$appointment_info.appointment_date",
+        appointment_id: "$appointment_info._id",
         patient_id: "$appointment_info.patient_id",
         patient_name: {
           $cond: {
@@ -124,7 +126,25 @@ exports.createBill = AsyncErrorHandler(async (req, res) => {
   ]);
 
   const detailedBill = BillWithDetails[0];
-  const patient_id = detailedBill?.patient_id;
+  const { appointment_id, patient_id } = detailedBill;
+
+  console.log("appointment_id",appointment_id)
+
+  await AppointmentStepProcess.findOneAndUpdate(
+    { appointmentId: appointment_id },
+    {
+      $set: {
+        currentStep: 6, // Payment step
+        overallStatus: "completed", // Mark the entire process as done
+        updatedAt: new Date(),
+        "steps.$[elem].status": "completed",
+      },
+    },
+    {
+      arrayFilters: [{ "elem.stepNumber": 6 }],
+      new: true,
+    }
+  );
 
   const io = req.app.get("io");
   const targetUser = global.connectedUsers?.[patient_id?.toString()];

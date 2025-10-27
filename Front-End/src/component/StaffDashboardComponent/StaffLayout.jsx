@@ -7,13 +7,13 @@ import { AppointmentDisplayContext } from "../../contexts/AppointmentContext/app
 import { TaskDisplayContext } from "../../contexts/TaskContext/TaskContext";
 import { CalendarCheck, ClipboardList, MessageSquare, Calendar } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
+import AppointmentStepper from "../Appointment/AppointmentStepper";
 
 const StaffLayout = () => {
     const { linkId } = useContext(AuthContext);
     const { isTask } = useContext(TaskDisplayContext);
     const { appointment } = useContext(AppointmentDisplayContext);
     const appointments = appointment;
-
     const [todayAppointments, setTodayAppointments] = useState([]);
     const [upcomingTasks, setUpcomingTasks] = useState([]);
     const [totalAppointments, setTotalAppointments] = useState(0);
@@ -106,68 +106,78 @@ const StaffLayout = () => {
     };
 
     return (
-        <motion.div
-            className="flex flex-col font-sans transition-colors duration-300 min-h-0"
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            transition={{ duration: 0.8 }}
-        >
-            <div className="flex-1 overflow-y-auto px-2 2xs:px-0 xs:px-0 sm:px-6 py-2 2xs:py-0">
-                {/*Responsive Stat Cards Grid */}
-                <motion.div
-                    className="mb-6 grid grid-cols-1 2xs:grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 xs:gap-4"
-                    initial={{ opacity: 0, y: -50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    <StatCard
-                        icon={<CalendarCheck size={28} />}
-                        title="Total Appointments"
-                        value={totalAppointments}
-                        trend={{ value: "8%", direction: "up" }}
-                        description="Overall appointments managed"
-                    />
-                    <StatCard
-                        icon={<ClipboardList size={28} />}
-                        title="Total Tasks"
-                        value={totalTasks}
-                        trend={{ value: "3%", direction: "up" }}
-                        description="All tasks created in system"
-                    />
-                    <StatCard
-                        icon={<MessageSquare size={28} />}
-                        title="Completed Appointments"
-                        value={completedAppointments}
-                        trend={{ value: "10%", direction: "up" }}
-                        description="Successfully finished visits"
-                    />
-                    <StatCard
-                        icon={<Calendar size={28} />}
-                        title="New Bookings Today"
-                        value={newBookingsToday}
-                        trend={{ value: "5%", direction: "up" }}
-                        description="Appointments booked today"
-                    />
-                </motion.div>
+       <motion.div
+  className="flex min-h-0 flex-col font-sans transition-colors duration-300"
+  initial={{ opacity: 0, x: 100 }}
+  animate={{ opacity: 1, x: 0 }}
+  exit={{ opacity: 0, x: -100 }}
+  transition={{ duration: 0.8 }}
+>
+  <div className="flex-1 overflow-y-auto px-2 py-2 2xs:px-0 2xs:py-0 xs:px-0 sm:px-6">
+   <div className="flex flex-col gap-6 md:flex-row md:gap-6">
+  {/* LEFT COLUMN: Stat Cards + Tables — Wider */}
+  <div className="flex flex-col gap-6 md:w-2/3">
+    {/* Stat Cards Grid */}
+    <motion.div
+      className="grid grid-cols-1 gap-3 2xs:grid-cols-2 xs:grid-cols-2 xs:gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4"
+      initial={{ opacity: 0, y: -50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <StatCard
+        icon={<CalendarCheck size={28} />}
+        title="Total Appointments"
+        value={totalAppointments}
+        trend={{ value: "8%", direction: "up" }}
+        description="Overall appointments managed"
+      />
+      <StatCard
+        icon={<ClipboardList size={28} />}
+        title="Total Tasks"
+        value={totalTasks}
+        trend={{ value: "3%", direction: "up" }}
+        description="All tasks created in system"
+      />
+      <StatCard
+        icon={<MessageSquare size={28} />}
+        title="Completed Appointments"
+        value={completedAppointments}
+        trend={{ value: "10%", direction: "up" }}
+        description="Successfully finished visits"
+      />
+      <StatCard
+        icon={<Calendar size={28} />}
+        title="New Bookings Today"
+        value={newBookingsToday}
+        trend={{ value: "5%", direction: "up" }}
+        description="Appointments booked today"
+      />
+    </motion.div>
 
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6 }}
-                    className="space-y-6"
-                >
-                    <TodayAppointmentsTable
-                        todayAppointments={todayAppointments}
-                        showMessageBox={showMessageBox}
-                    />
-                    <TasksTable
-                        upcomingTasks={upcomingTasks}
-                        showMessageBox={showMessageBox}
-                    />
-                </motion.div>
-            </div>
-        </motion.div>
+    <TodayAppointmentsTable
+      todayAppointments={todayAppointments}
+      showMessageBox={showMessageBox}
+    />
+
+    <TasksTable
+      upcomingTasks={upcomingTasks}
+      showMessageBox={showMessageBox}
+    />
+  </div>
+  <div className="md:w-1/3">
+    <div className="flex flex-col rounded-xl bg-white p-3 sm:p-4 shadow-lg dark:bg-gray-900
+                h-full min-h-[250px] max-h-[640px]">
+  <h2 className="mb-3 text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-200">
+    Appointment Progress
+  </h2>
+  <div className="min-w-0 flex-1 overflow-auto">
+    <AppointmentStepper />
+  </div>
+</div>
+  </div>
+</div>
+  </div>
+</motion.div>
     );
 };
 
