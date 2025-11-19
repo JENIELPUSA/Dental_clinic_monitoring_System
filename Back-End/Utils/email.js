@@ -68,7 +68,7 @@ const sendEmail = async ({ email, subject, text, attachments }) => {
   try {
     const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
 
-    const from = `Newborn Tracking System <${
+    const from = `Doc.Saclolo Dental Care System <${
       process.env.SENDER_EMAIL || "jeniel12300@gmail.com"
     }>`;
     const htmlContent = `
@@ -120,14 +120,14 @@ const sendEmail = async ({ email, subject, text, attachments }) => {
               <a href="https://dental-clinic-monitoring-system-web.onrender.com" class="btn">Visit Our Website</a>
             </div>
             <div class="contact-info">
-              📍 123 Dental Avenue, Manila, Philippines<br>
+              📍 Naval, Biliran<br>
               📞 (02) 8123-4567 | 📱 0917 890 1234<br>
-              ✉️ contact@brightsmileclinic.com
+              ✉️ contact@docsaloloclinic.com
             </div>
           </div>
           <div class="footer">
             <p>This is an automated message from the Dental Clinic Monitoring System. Please do not reply to this email.</p>
-            <span class="auto-msg">© 2025 BrightSmile Dental Clinic. All rights reserved.</span>
+            <span class="auto-msg">© 2025 Doc.Saclolo Dental Care System. All rights reserved.</span>
           </div>
         </div>
       </body>

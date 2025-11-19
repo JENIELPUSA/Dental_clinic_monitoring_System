@@ -128,7 +128,7 @@ exports.createBill = AsyncErrorHandler(async (req, res) => {
   const detailedBill = BillWithDetails[0];
   const { appointment_id, patient_id } = detailedBill;
 
-  console.log("appointment_id",appointment_id)
+
 
   await AppointmentStepProcess.findOneAndUpdate(
     { appointmentId: appointment_id },
@@ -438,7 +438,7 @@ exports.UpdateBill = AsyncErrorHandler(async (req, res, next) => {
     try {
       await sendEmail({
         email: detailedBill.email,
-        subject: "Updated Dental Invoice from BrightSmile Clinic",
+        subject: "Updated Dental Invoice from Doc.Saclolo Dental Care",
         text: `Dear ${detailedBill.patient_name},<br><br>Your updated invoice is attached. Thank you!`,
         attachments: [
           {
@@ -575,7 +575,7 @@ exports.UpdateBill = AsyncErrorHandler(async (req, res, next) => {
   doc.moveDown(2);
   doc.fontSize(11).fillColor("#2c3e50").font("Helvetica-Bold");
 
-  const thankYouText = "Thank you for trusting BrightSmile Clinic!";
+  const thankYouText = "Thank you for trusting Doc.Saclolo Dental Care";
   const textWidth = doc.widthOfString(thankYouText);
   const centerX = (doc.page.width - textWidth) / 2;
   doc.text(thankYouText, centerX, doc.y);
