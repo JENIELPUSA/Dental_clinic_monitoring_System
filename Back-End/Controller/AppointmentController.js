@@ -310,9 +310,6 @@ exports.GetSpecificAppointment = AsyncErrorHandler(async (req, res) => {
 exports.UpdateAppointment = AsyncErrorHandler(async (req, res, next) => {
   const { patient_id, doctor_id, appointment_date, appointment_status } =
     req.body;
-
-    console.log("APPOINTMENTSTATUSSSS HERE")
-
   const updateAppointment = await Appointment.findByIdAndUpdate(
     req.params.id,
     { patient_id, doctor_id, appointment_date, appointment_status },
@@ -426,7 +423,6 @@ exports.UpdateStatus = AsyncErrorHandler(async (req, res, next) => {
       }
     );
 
-    console.log(`Updated step process for appointment ${updatedAppointment._id}`);
 
     const targetUser = global.connectedUsers?.[patientId];
 

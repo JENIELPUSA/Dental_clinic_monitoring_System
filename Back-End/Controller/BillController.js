@@ -383,7 +383,7 @@ exports.UpdateBill = AsyncErrorHandler(async (req, res, next) => {
   const detailedBill = billWithDetails[0];
   const patient_id = detailedBill?.patient_id;
 
-  // ⬇️ ADD BillingHistory Snapshot
+  //  ADD BillingHistory Snapshot
   await BillingHistory.create({
     patient_id: patient_id,
     treatment_description: detailedBill.treatment_description,
@@ -459,15 +459,15 @@ exports.UpdateBill = AsyncErrorHandler(async (req, res, next) => {
     .fillColor("#2c3e50")
     .fontSize(20)
     .font("Helvetica-Bold")
-    .text("BrightSmile Dental Clinic", { align: "center" })
+    .text("Doc.Saclolo Dental Care", { align: "center" })
     .moveDown(0.2)
     .fontSize(10)
     .font("Helvetica")
     .fillColor("gray")
-    .text("Unit 101, Bright Tower, 123 Clinic Street, City 1234", {
+    .text("Naval Biliran", {
       align: "center",
     })
-    .text("Phone: (02) 1234 5678 | Email: info@smilebright.com", {
+    .text("Phone: (02) 1234 5678 | Email: info@docsaclolo.com", {
       align: "center",
     })
     .moveDown(1.5);
