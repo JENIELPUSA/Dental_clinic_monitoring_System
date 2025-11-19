@@ -113,10 +113,10 @@ const generateBillPDFAndSend = async (patientId) => {
   });
 
   // --- PDF Content ---
-  doc.fontSize(18).font("Helvetica-Bold").text("Smile Bright Dental Clinic", { align: "center" });
-  doc.fontSize(10).font("Helvetica").text("Unit 101, Bright Tower, 123 Clinic Street", { align: "center" });
-  doc.text("City, Postal Code 1234, Philippines", { align: "center" });
-  doc.text("Phone: +63 (2) 1234 5678 | Email: info@smilebright.com", { align: "center" });
+  doc.fontSize(18).font("Helvetica-Bold").text("Doc.Saclolo Dental Care", { align: "center" });
+  doc.fontSize(10).font("Helvetica").text("Naval Biliran", { align: "center" });
+  doc.text("City, Postal Code 6519, Philippines", { align: "center" });
+  doc.text("Phone: +63 (2) 1234 5678 | Email: info@docsaclolo.com", { align: "center" });
 
   doc.moveDown();
   doc.fontSize(20).font("Helvetica-Bold").fillColor("#333333").text("INVOICE", { align: "right" });
@@ -209,8 +209,8 @@ const generateBillPDFAndSend = async (patientId) => {
   try {
     await sendEmail({
       email: patient_email,
-      subject: "Dental Invoice from BrightSmile Clinic",
-      text: `Dear ${patient_name},<br><br>Your invoice is attached as a PDF document. Thank you for choosing BrightSmile Dental Clinic.`,
+      subject: "Dental Invoice from Doc.Saclolo Dental Care",
+      text: `Dear ${patient_name},<br><br>Your invoice is attached as a PDF document. Thank you for choosing Doc.Saclolo Dental Care.`,
       attachments: [
         {
           filename: `invoice-${invoiceNumber}.pdf`,
