@@ -21,5 +21,8 @@ router
 router
   .route("/History")
   .get(authController.protect, BillingHistoryController.DisplayBillHistory);
+router
+  .route("/GenerateBillHistoryPDFByPatient")
+  .get(authController.protect, BillingHistoryController.GenerateBillHistoryPDFByPatient);
 
 module.exports = router;

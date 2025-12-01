@@ -28,6 +28,10 @@ router
 router
   .route("/GetPatientAppointment/:id")
   .get(authController.protect, AppointmentController.GetPatientAppointment);
+  
+router
+  .route("/GenerateReportPDF")
+  .get(authController.protect, AppointmentController.GenerateReportPDF);
 
 
 module.exports = router;

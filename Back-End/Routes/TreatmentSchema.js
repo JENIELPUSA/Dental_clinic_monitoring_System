@@ -5,7 +5,11 @@ const authController = require("./../Controller/authController");
 const upload = require("../middleware/fileUploader");
 router
   .route("/")
-  .post(authController.protect, upload.single("file"),TreatmentController.createTreatment)
+  .post(
+    authController.protect,
+    upload.single("file"),
+    TreatmentController.createTreatment
+  )
   .get(authController.protect, TreatmentController.DisplayTreatment);
 
 router
@@ -16,5 +20,9 @@ router
 router
   .route("/SpecificTreatment/:id")
   .get(authController.protect, TreatmentController.DisplayTreatmentByPatientId);
+
+router
+  .route("/GenerateTreatmentPDF")
+  .get(authController.protect, TreatmentController.GenerateTreatmentPDF);
 
 module.exports = router;

@@ -19,7 +19,7 @@ const PieGraphandcard = () => {
                 <>
                     <CardData />
                     <PieGraph />
-                    <RecentAppoinment />
+               
                 </>
             )}
         </motion.div>

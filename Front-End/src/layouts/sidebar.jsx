@@ -20,7 +20,9 @@ export const Sidebar = forwardRef(({ collapsed }, ref) => {
             "/dashboard/new-product",
             "/dashboard/Treatment",
             "/dashboard/prescription",
-            "/dashboard/booking","/dashboard/Change-Password"
+            "/dashboard/booking",
+            "/dashboard/Change-Password",
+            "/dashboard/Logs",
         ],
         staff: [
             "/dashboard",
@@ -33,12 +35,11 @@ export const Sidebar = forwardRef(({ collapsed }, ref) => {
             "/dashboard/prescription",
             "/dashboard/Accounts",
             "/dashboard/new-patients",
-            "/dashboard/bill","/dashboard/Change-Password"
+            "/dashboard/bill",
+            "/dashboard/Change-Password",
         ],
-        patient: ["/dashboard","/dashboard/Treatment", "/dashboard/appointment","/dashboard/Change-Password"],
-        Admin: [
-              
-        ],
+        patient: ["/dashboard", "/dashboard/Treatment", "/dashboard/appointment", "/dashboard/Change-Password"],
+        Admin: [],
     };
 
     const handleLogout = async () => {

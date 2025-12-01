@@ -3,6 +3,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PrescriptionDisplayContext } from "../../contexts/PrescriptionContext/PrescriptionContext";
 import LoadingOverlay from "../../component/ReusableComponents/LoadingOverlay";
 
+// Static suggestion lists
+const MEDICATION_SUGGESTIONS = [
+  "Amoxicillin", "Paracetamol", "Ibuprofen", "Cetirizine", "Metformin",
+  "Lisinopril", "Atorvastatin", "Omeprazole", "Azithromycin", "Diazepam",
+  "Albuterol", "Levothyroxine", "Prednisone", "Insulin", "Aspirin",
+  "Simvastatin", "Gabapentin", "Sertraline", "Tramadol", "Clopidogrel"
+];
+
+const DOSAGE_SUGGESTIONS = [
+  "250mg", "500mg", "1g", "10mg", "20mg", "40mg", "5mg", "100mg", "200mg",
+  "1 tablet", "2 tablets", "5mL", "10mL", "1 puff", "2 puffs", "0.5mg", "50mg"
+];
+
+const FREQUENCY_SUGGESTIONS = [
+  "Once daily", "Twice daily", "3x daily", "4x daily", "Every 6 hours",
+  "Every 8 hours", "Every 12 hours", "As needed", "Before meals", "At bedtime",
+  "With food", "On empty stomach", "Every 4 hours", "Once weekly"
+];
+
 const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
   const { AddPrescription, UpdatePrescription } = useContext(PrescriptionDisplayContext);
   const [isLoading, setIsLoading] = useState(false);
@@ -12,6 +31,35 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
   const [medications, setMedications] = useState([
     { medication_name: "", dosage: "", frequency: "", start_date: "", end_date: "" }
   ]);
+  const [postCare, setPostCare] = useState({
+    instructions: "",
+    medication: "",
+    nextVisit: "",
+  });
+
+  const [dropdownField, setDropdownField] = useState(null); // e.g., "med-0-medication_name"
+
+  // 🔧 Handle outside click using mousedown + data attributes
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!dropdownField) return;
+
+      const clickedInput = event.target.closest('input[data-field]');
+      const clickedDropdown = event.target.closest('[data-dropdown]');
+
+      if (
+        (clickedInput && clickedInput.getAttribute('data-field') === dropdownField) ||
+        clickedDropdown
+      ) {
+        return;
+      }
+
+      setDropdownField(null);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [dropdownField]);
 
   useEffect(() => {
     if (selectedPrescription) {
@@ -27,10 +75,20 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
             }))
           : [{ medication_name: "", dosage: "", frequency: "", start_date: "", end_date: "" }]
       );
+
+      const pc = selectedPrescription.postCare || {};
+      setPostCare({
+        instructions: pc.instructions || "",
+        medication: pc.medication || "",
+        nextVisit: pc.nextVisit
+          ? new Date(pc.nextVisit).toISOString().split("T")[0]
+          : "",
+      });
       setStep(0);
     } else {
       setAppointmentId("");
       setMedications([{ medication_name: "", dosage: "", frequency: "", start_date: "", end_date: "" }]);
+      setPostCare({ instructions: "", medication: "", nextVisit: "" });
       setStep(0);
     }
   }, [selectedPrescription]);
@@ -70,6 +128,11 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
         start_date: m.start_date ? new Date(m.start_date) : null,
         end_date: m.end_date ? new Date(m.end_date) : null,
       })),
+      postCare: {
+        instructions: postCare.instructions.trim() || "",
+        medication: postCare.medication.trim() || "",
+        nextVisit: postCare.nextVisit ? new Date(postCare.nextVisit) : null,
+      },
     };
 
     try {
@@ -81,6 +144,7 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
 
       setAppointmentId("");
       setMedications([{ medication_name: "", dosage: "", frequency: "", start_date: "", end_date: "" }]);
+      setPostCare({ instructions: "", medication: "", nextVisit: "" });
       setStep(0);
       setTimeout(() => onClose(), 800);
     } catch (error) {
@@ -90,12 +154,13 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
     }
   };
 
-  const totalSteps = medications.length + 2;
+  const totalSteps = medications.length + 3;
   const progress = ((step + 1) / totalSteps) * 100;
 
   const getStepLabel = () => {
     if (step === 0) return "Appointment Details";
     if (step > 0 && step <= medications.length) return `Medication ${step}`;
+    if (step === medications.length + 1) return "Post-Care Instructions";
     return "Review & Submit";
   };
 
@@ -106,6 +171,55 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
       return med.medication_name && med.dosage && med.frequency && med.start_date;
     }
     return true;
+  };
+
+  const renderFieldWithDropdown = (index, fieldKey, label, placeholder, suggestions) => {
+    const med = medications[index];
+    const value = med[fieldKey];
+    const fieldId = `med-${index}-${fieldKey}`;
+    const isOpen = dropdownField === fieldId;
+    const filtered = value
+      ? suggestions.filter(item => item.toLowerCase().includes(value.toLowerCase()))
+      : suggestions;
+
+    return (
+      <div className="relative">
+        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {label} <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          data-field={fieldId}
+          onFocus={() => setDropdownField(fieldId)}
+          onChange={(e) => handleMedicationChange(index, fieldKey, e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-gray-800 dark:text-white dark:border-gray-700 h-11"
+        />
+        {isOpen && filtered.length > 0 && (
+          <div 
+            className="absolute z-10 w-full mt-1"
+            data-dropdown // ✅ Added for outside click detection
+          >
+            <ul className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+              {filtered.map((item, i) => (
+                <li
+                  key={i}
+                  data-suggestion
+                  onClick={() => {
+                    handleMedicationChange(index, fieldKey, item);
+                    setDropdownField(null);
+                  }}
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderStep = () => {
@@ -137,8 +251,8 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
     }
 
     if (step > 0 && step <= medications.length) {
-      const med = medications[step - 1];
       const index = step - 1;
+      const med = medications[index];
       return (
         <motion.div
           key={`step-${step}`}
@@ -163,49 +277,38 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
             )}
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Medication Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="e.g., Amoxicillin"
-              value={med.medication_name}
-              onChange={(e) => handleMedicationChange(index, "medication_name", e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-gray-800 dark:text-white dark:border-gray-700 h-11"
-            />
-          </div>
+          {/* Medication Name with Dropdown */}
+          {renderFieldWithDropdown(
+            index,
+            "medication_name",
+            "Medication Name",
+            "e.g., Amoxicillin",
+            MEDICATION_SUGGESTIONS
+          )}
 
-          {/* Dosage & Frequency - Full width on mobile */}
+          {/* Dosage & Frequency */}
           <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0">
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Dosage <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., 500mg"
-                value={med.dosage}
-                onChange={(e) => handleMedicationChange(index, "dosage", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-gray-800 dark:text-white dark:border-gray-700 h-11"
-              />
+              {renderFieldWithDropdown(
+                index,
+                "dosage",
+                "Dosage",
+                "e.g., 500mg",
+                DOSAGE_SUGGESTIONS
+              )}
             </div>
-
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Frequency <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., 3x daily"
-                value={med.frequency}
-                onChange={(e) => handleMedicationChange(index, "frequency", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-gray-800 dark:text-white dark:border-gray-700 h-11"
-              />
+              {renderFieldWithDropdown(
+                index,
+                "frequency",
+                "Frequency",
+                "e.g., 3x daily",
+                FREQUENCY_SUGGESTIONS
+              )}
             </div>
           </div>
 
-          {/* Dates - Full width on mobile */}
+          {/* Dates */}
           <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0">
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -239,6 +342,61 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
     if (step === medications.length + 1) {
       return (
         <motion.div
+          key="post-care"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-4"
+        >
+          <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-3">
+            Post-Care Instructions
+          </h4>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Care Instructions
+            </label>
+            <textarea
+              value={postCare.instructions}
+              onChange={(e) => setPostCare({ ...postCare, instructions: e.target.value })}
+              placeholder="e.g., Rest for 24 hours, avoid heavy lifting..."
+              rows={3}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-gray-800 dark:text-white dark:border-gray-700"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Additional Medication (if any)
+            </label>
+            <input
+              type="text"
+              value={postCare.medication}
+              onChange={(e) => setPostCare({ ...postCare, medication: e.target.value })}
+              placeholder="e.g., Paracetamol as needed"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-gray-800 dark:text-white dark:border-gray-700 h-11"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Next Visit Date
+            </label>
+            <input
+              type="date"
+              value={postCare.nextVisit}
+              onChange={(e) => setPostCare({ ...postCare, nextVisit: e.target.value })}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-gray-800 dark:text-white dark:border-gray-700 h-11"
+            />
+          </div>
+        </motion.div>
+      );
+    }
+
+    if (step === medications.length + 2) {
+      return (
+        <motion.div
           key="review"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -248,13 +406,13 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
           <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-3">
             Review Prescription
           </h4>
-          
+
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-3">
             <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Appointment ID</p>
             <p className="font-medium text-gray-900 dark:text-white text-sm">{appointmentId}</p>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 mb-4">
             <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
               Medications ({medications.length})
             </p>
@@ -267,7 +425,6 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
                   <h5 className="font-semibold text-gray-900 dark:text-white text-sm">
                     {i + 1}. {m.medication_name}
                   </h5>
-               
                 </div>
                 <div className="space-y-0.5 text-xs text-gray-600 dark:text-gray-400">
                   <div><span className="font-medium">Dosage:</span> {m.dosage}</div>
@@ -277,6 +434,23 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Post-Care Instructions</p>
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-xs text-gray-600 dark:text-gray-400">
+              {postCare.instructions || "None provided"}
+              {postCare.medication && (
+                <div className="mt-2">
+                  <span className="font-medium">Additional Meds:</span> {postCare.medication}
+                </div>
+              )}
+              {postCare.nextVisit && (
+                <div className="mt-1">
+                  <span className="font-medium">Next Visit:</span> {postCare.nextVisit}
+                </div>
+              )}
+            </div>
           </div>
         </motion.div>
       );
@@ -357,7 +531,7 @@ const PrescriptionForm = ({ isOpen, onClose, selectedPrescription }) => {
                     </button>
                   )}
 
-                  {step < medications.length + 1 ? (
+                  {step < medications.length + 2 ? (
                     <button
                       type="button"
                       onClick={() => setStep(step + 1)}

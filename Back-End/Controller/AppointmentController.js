@@ -6,6 +6,7 @@ const sendEmail = require("../Utils/email");
 const User = require("./../Models/LogInDentalSchema");
 const Treatment = require("./../Models/Treatments"); //appointment_id
 const Prescription = require("./../Models/Prescription"); //appointment_id
+const { Readable } = require('stream');
 
 const PDFDocument = require("pdfkit");
 const {
@@ -1173,4 +1174,293 @@ exports.GetPatientAppointment = AsyncErrorHandler(async (req, res) => {
       message: error.message,
     });
   }
+});
+
+exports.GenerateReportPDF = AsyncErrorHandler(async (req, res) => {
+  const { From, To, status, search = "" } = req.query;
+
+  // Reuse your filtering logic (without pagination)
+  const matchStage = {};
+  const hasFrom = From && From.trim() !== "";
+  const hasTo = To && To.trim() !== "";
+
+  if (hasFrom || hasTo) {
+    matchStage.appointment_date = {};
+    if (hasFrom) matchStage.appointment_date.$gte = new Date(From);
+    if (hasTo) {
+      const endDate = new Date(To);
+      endDate.setDate(endDate.getDate() + 1);
+      matchStage.appointment_date.$lt = endDate;
+    }
+  }
+
+  if (status && status.trim() !== "") {
+    matchStage.appointment_status = status.trim();
+  }
+
+  const pipeline = [
+    {
+      $lookup: {
+        from: "patients",
+        localField: "patient_id",
+        foreignField: "_id",
+        as: "patient_info",
+      },
+    },
+    {
+      $lookup: {
+        from: "doctors",
+        localField: "doctor_id",
+        foreignField: "_id",
+        as: "doctor_info",
+      },
+    },
+    { $unwind: { path: "$patient_info", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$doctor_info", preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        patient_name: {
+          $concat: [
+            { $ifNull: ["$patient_info.first_name", ""] },
+            " ",
+            { $ifNull: ["$patient_info.last_name", ""] },
+          ],
+        },
+        doctor_name: {
+          $concat: [
+            { $ifNull: ["$doctor_info.first_name", ""] },
+            " ",
+            { $ifNull: ["$doctor_info.last_name", ""] },
+          ],
+        },
+      },
+    },
+    {
+      $match: {
+        ...matchStage,
+        ...(search.trim()
+          ? {
+              $or: [
+                { patient_name: { $regex: new RegExp(search.trim(), "i") } },
+                { doctor_name: { $regex: new RegExp(search.trim(), "i") } },
+              ],
+            }
+          : {}),
+      },
+    },
+    { $sort: { appointment_date: -1 } },
+    {
+      $project: {
+        _id: 1,
+        appointment_date: 1,
+        start_time: 1,
+        end_time: 1,
+        appointment_status: 1,
+        patient_name: 1,
+        doctor_name: 1,
+      },
+    },
+  ];
+
+  const appointments = await Appointment.aggregate(pipeline);
+
+  // Set response headers for PDF
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename=appointment-report-${Date.now()}.pdf`);
+
+  // Create PDF in LANDSCAPE
+  const doc = new PDFDocument({ 
+    margin: 30,
+    size: [842, 595], // A4 Landscape: 842x595 pts
+    bufferPages: true
+  });
+  const stream = doc.pipe(res);
+
+  // Colors
+  const primaryColor = '#2563eb';
+  const headerBg = '#f1f5f9';
+  const borderColor = '#cbd5e1';
+
+  // Page dimensions (landscape)
+  const pageWidth = 842;
+  const pageHeight = 595;
+  const margin = 30;
+  const footerHeight = 50;
+  const bottomThreshold = pageHeight - margin - footerHeight;
+
+  const checkSpace = (requiredHeight) => {
+    return doc.y + requiredHeight <= bottomThreshold;
+  };
+
+  const ensureSpace = (requiredHeight) => {
+    if (!checkSpace(requiredHeight)) {
+      doc.addPage();
+      doc.y = margin + 20;
+      return true;
+    }
+    return false;
+  };
+
+  // ===== CLINIC HEADER (Top Left) =====
+  doc.fontSize(16)
+     .font('Helvetica-Bold')
+     .fillColor('#1e40af')
+     .text('Doc. Saclolo Dental Care', margin, 20);
+
+  doc.fontSize(8)
+     .font('Helvetica')
+     .fillColor('#334155')
+     .text('Sto. Niño, Naval, Biliran', margin, 35)
+     .text('(053) 123-4567', margin, 47)
+     .text('saclolodentalcare@gmail.com', margin, 59);
+
+  // ===== REPORT TITLE BAR (Full Width) =====
+  doc.rect(0, 75, pageWidth, 30).fill(primaryColor);
+  doc.fillColor('#ffffff')
+     .fontSize(18)
+     .font('Helvetica-Bold')
+     .text('APPOINTMENT REPORT', margin, 82, { width: pageWidth - 2 * margin, align: 'center' });
+
+  // Start content after header
+  let currentY = 115;
+
+  // ===== FILTER INFO =====
+  let filterText = '';
+  if (hasFrom || hasTo || status || search) {
+    doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 0, 3).fill(headerBg);
+    
+    if (hasFrom || hasTo) {
+      const fromDate = hasFrom ? new Date(From).toLocaleDateString('en-PH') : 'Any';
+      const toDate = hasTo ? new Date(To).toLocaleDateString('en-PH') : 'Any';
+      filterText += `📅 ${fromDate} to ${toDate}  `;
+    }
+    if (status) filterText += `📊 ${status}  `;
+    if (search) filterText += `🔍 "${search}"`;
+    
+    doc.fillColor('#334155')
+       .fontSize(9)
+       .font('Helvetica')
+       .text(filterText, margin + 10, currentY + 5, { width: pageWidth - 2 * margin - 20 });
+    
+    const textHeight = doc.heightOfString(filterText, { width: pageWidth - 2 * margin - 20 });
+    const filterBoxHeight = textHeight + 12;
+    doc.roundedRect(margin, currentY, pageWidth - 2 * margin, filterBoxHeight, 3)
+       .stroke(borderColor);
+    
+    currentY += filterBoxHeight + 12;
+  } else {
+    currentY += 10;
+  }
+
+  // Summary
+  doc.fontSize(10)
+     .font('Helvetica-Bold')
+     .fillColor('#000000')
+     .text(`Total: ${appointments.length} appointments`, margin, currentY);
+  currentY += 18;
+
+  // ===== TABLE (Optimized for Landscape) =====
+  const drawTableHeader = (yPosition) => {
+    const tableTop = yPosition;
+    // Wider columns in landscape
+    const headers = ['Date', 'Time', 'Patient Name', 'Doctor Name', 'Status'];
+    const columnWidths = [90, 90, 180, 180, 100];
+    let currentX = margin;
+
+    doc.rect(margin, tableTop - 3, pageWidth - 2 * margin, 20).fill(primaryColor);
+    doc.fillColor('#ffffff').fontSize(9).font('Helvetica-Bold');
+    
+    headers.forEach((header, i) => {
+      doc.text(header, currentX + 5, tableTop + 2, { width: columnWidths[i] - 10 });
+      currentX += columnWidths[i];
+    });
+
+    doc.fillColor('#000000');
+    return tableTop + 22;
+  };
+
+  let tableY = drawTableHeader(currentY);
+  doc.y = tableY;
+  const rowHeight = 20;
+  const columnWidths = [90, 90, 180, 180, 100];
+
+  appointments.forEach((app, index) => {
+    ensureSpace(rowHeight + 5);
+    const rowY = doc.y;
+    
+    if (index % 2 === 0) {
+      doc.rect(margin, rowY, pageWidth - 2 * margin, rowHeight).fill('#f8fafc');
+    }
+
+    const date = app.appointment_date 
+      ? new Date(app.appointment_date).toLocaleDateString('en-PH', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        })
+      : 'N/A';
+    
+    const time = app.start_time && app.end_time 
+      ? `${app.start_time.substring(0, 5)} - ${app.end_time.substring(0, 5)}` 
+      : 'N/A';
+    
+    const patient = (app.patient_name?.trim() || 'Unknown').substring(0, 30);
+    const doctor = (app.doctor_name?.trim() || 'Unknown').substring(0, 30);
+    const statusText = app.appointment_status || 'N/A';
+
+    let statusColor = '#64748b';
+    if (statusText.toLowerCase() === 'completed') statusColor = '#16a34a';
+    else if (statusText.toLowerCase() === 'pending') statusColor = '#f59e0b';
+    else if (statusText.toLowerCase() === 'cancelled') statusColor = '#dc2626';
+    else if (statusText.toLowerCase() === 'confirmed') statusColor = '#2563eb';
+
+    const rowData = [
+      { text: date, color: '#1e293b' },
+      { text: time, color: '#475569' },
+      { text: patient, color: '#0f172a' },
+      { text: doctor, color: '#0f172a' },
+      { text: statusText, color: statusColor }
+    ];
+
+    let currentX = margin;
+    doc.font('Helvetica').fontSize(9);
+    rowData.forEach((cell, i) => {
+      doc.fillColor(cell.color)
+         .text(cell.text, currentX + 5, rowY + 5, {
+           width: columnWidths[i] - 10,
+           ellipsis: true,
+           align: i === 4 ? 'center' : 'left'
+         });
+      currentX += columnWidths[i];
+    });
+
+    doc.strokeColor(borderColor)
+       .lineWidth(0.5)
+       .moveTo(margin, rowY + rowHeight)
+       .lineTo(pageWidth - margin, rowY + rowHeight)
+       .stroke();
+
+    doc.y = rowY + rowHeight;
+  });
+
+  // ===== FOOTER =====
+  const range = doc.bufferedPageRange();
+  for (let i = 0; i < range.count; i++) {
+    doc.switchToPage(i);
+    const footerY = bottomThreshold + 5;
+
+    doc.strokeColor(borderColor)
+       .lineWidth(0.5)
+       .moveTo(margin, footerY)
+       .lineTo(pageWidth - margin, footerY)
+       .stroke();
+
+    doc.fontSize(8)
+       .fillColor('#64748b')
+       .font('Helvetica')
+       .text(`Generated on ${new Date().toLocaleString('en-PH')}`, margin, footerY + 5, { align: 'left' })
+       .text(`Page ${i + 1} of ${range.count}`, pageWidth - margin, footerY + 5, { align: 'right' });
+  }
+
+  doc.end();
 });

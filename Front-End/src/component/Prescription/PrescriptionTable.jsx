@@ -227,6 +227,20 @@ const PrescriptionTable = () => {
                                     )}
                                 </div>
 
+                                {/* Post-Care Instructions (NEW) */}
+                                <div className="mt-2">
+                                    <div className="font-medium text-blue-800 dark:text-blue-200">Instructions:</div>
+                                    <p className="text-xs text-gray-700 dark:text-gray-300">{prescription.postCare?.instructions || "N/A"}</p>
+                                </div>
+
+                                {/* Next Visit (NEW) */}
+                                <div className="mt-1">
+                                    <div className="font-medium text-blue-800 dark:text-blue-200">Next Visit:</div>
+                                    <p className="text-xs text-gray-700 dark:text-gray-300">
+                                        {formatDate(prescription.postCare?.nextVisit || "N/A")}
+                                    </p>
+                                </div>
+
                                 {/* Actions */}
                                 <div className="mt-3 flex justify-end">
                                     <button
@@ -254,6 +268,8 @@ const PrescriptionTable = () => {
                                 <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Prescription ID</th>
                                 <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Patient Name</th>
                                 <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Medication Name</th>
+                                <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Instruction</th>
+                                <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">nextVisit</th>
                                 <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Action</th>
                             </tr>
                         </thead>
@@ -287,6 +303,12 @@ const PrescriptionTable = () => {
                                             ) : (
                                                 "No Medications"
                                             )}
+                                        </td>
+                                        <td className="border px-3 py-2.5 dark:border-blue-800/50 dark:text-blue-300">
+                                            {prescription.postCare?.instructions || "N/A"}
+                                        </td>
+                                        <td className="border px-3 py-2.5 dark:border-blue-800/50 dark:text-blue-300">
+                                            {formatDate(prescription.postCare?.nextVisit || "N/A")}
                                         </td>
                                         {role !== "staff" && (
                                             <td className="border px-3 py-2.5 text-center dark:border-blue-800/50">

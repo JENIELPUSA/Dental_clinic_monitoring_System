@@ -1,30 +1,31 @@
 import React, { useContext, useState, useEffect, useMemo } from "react";
 import { AppointmentDisplayContext } from "../../contexts/AppointmentContext/appointmentContext";
-import { Ban, CalendarCheck, CircleCheckBig, User, FileDown, Trash } from "lucide-react";
+import { Ban, CalendarCheck, CircleCheckBig, User, FileDown } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
 import StatusVerification from "../../ReusableFolder/StatusModal";
+import ExportPdfModal from "./ExportPdf"; 
 
 // Hook to detect mobile (< 640px)
 const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 640);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-  return isMobile;
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 640);
+        check();
+        window.addEventListener("resize", check);
+        return () => window.removeEventListener("resize", check);
+    }, []);
+    return isMobile;
 };
 
 const SkeletonCard = () => (
-  <div className="animate-pulse rounded-lg border border-blue-200 bg-white p-3 shadow dark:border-blue-800/50 dark:bg-blue-900/20">
-    <div className="h-3.5 w-1/2 rounded bg-blue-100 dark:bg-blue-800/40"></div>
-    <div className="mt-2 space-y-2">
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="h-3 w-full rounded bg-blue-100 dark:bg-blue-800/40"></div>
-      ))}
+    <div className="animate-pulse rounded-lg border border-blue-200 bg-white p-3 shadow dark:border-blue-800/50 dark:bg-blue-900/20">
+        <div className="h-3.5 w-1/2 rounded bg-blue-100 dark:bg-blue-800/40"></div>
+        <div className="mt-2 space-y-2">
+            {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-3 w-full rounded bg-blue-100 dark:bg-blue-800/40"></div>
+            ))}
+        </div>
     </div>
-  </div>
 );
 
 const AppointmentTable = () => {
@@ -41,7 +42,7 @@ const AppointmentTable = () => {
         fetchAppointmentData,
         TotalAppointment,
         loading,
-        setCurrentPage,
+        setCurrentPage,fetchAppointmentReportPDF
     } = useContext(AppointmentDisplayContext);
 
     const [searchFilters, setSearchFilters] = useState({
@@ -58,19 +59,32 @@ const AppointmentTable = () => {
         return role === "patient" ? isPatientData || [] : appointment || [];
     }, [role, isPatientData, appointment]);
 
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportDates, setExportDates] = useState({
+        from: "",
+        to: "",
+    });
+    const [exportStatus, setExportStatus] = useState(""); // Status state for export
+
+    const itemsPerPage = 5;
+
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
         const date = new Date(dateString);
         return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
     };
 
+    // Fetch patient data kapag patient ang role
     useEffect(() => {
         if (linkId && role === "patient") {
             GetPatientAppointment(linkId);
         }
     }, [linkId, role]);
 
+    // Debounced fetch for search/date filters (non-patient only)
     useEffect(() => {
+        if (role === "patient") return;
+
         const delayDebounce = setTimeout(() => {
             fetchAppointmentData({
                 page: 1,
@@ -80,7 +94,28 @@ const AppointmentTable = () => {
             });
         }, 400);
         return () => clearTimeout(delayDebounce);
-    }, [searchFilters]);
+    }, [searchFilters, role]);
+
+    // Updated: Include status in export logic
+ const handleGeneratePDF = () => {
+    if (!exportDates.from || !exportDates.to) {
+        alert("Please select both 'From' and 'To' dates.");
+        return;
+    }
+    if (new Date(exportDates.from) > new Date(exportDates.to)) {
+        alert("'From' date cannot be later than 'To' date.");
+        return;
+    }
+
+    // Include exportStatus in the payload
+    fetchAppointmentReportPDF({
+        from: exportDates.from,
+        to: exportDates.to,
+        status: exportStatus || undefined, // Pass undefined if empty to ignore filter
+    });
+
+    setShowExportModal(false);
+};
 
     const getStatusBadge = (status) => {
         let badgeClasses = "px-2 py-0.5 rounded-full text-xs font-semibold text-white ";
@@ -145,8 +180,8 @@ const AppointmentTable = () => {
         }
     };
 
-    const startEntry = (currentPage - 1) * 5 + 1;
-    const endEntry = Math.min(currentPage * 5, TotalAppointment || 0);
+    const startEntry = (currentPage - 1) * itemsPerPage + 1;
+    const endEntry = Math.min(currentPage * itemsPerPage, TotalAppointment || 0);
 
     return (
         <div className="w-full rounded-2xl bg-white p-3 shadow-md dark:border dark:border-blue-800/50 dark:bg-blue-900/20 sm:p-6">
@@ -188,6 +223,12 @@ const AppointmentTable = () => {
                             className="w-full rounded-lg border px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-blue-800/50 dark:bg-blue-900/30 dark:text-white sm:px-4 sm:py-2 sm:text-sm"
                         />
                     </div>
+                    <button
+                        onClick={() => setShowExportModal(true)}
+                        className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-medium text-white shadow hover:bg-blue-700 active:scale-95 dark:bg-blue-700 dark:hover:bg-blue-600 sm:text-sm"
+                    >
+                        Export PDF Report
+                    </button>
                 </div>
             </div>
 
@@ -212,7 +253,7 @@ const AppointmentTable = () => {
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                         <div className="text-sm font-bold text-blue-800 dark:text-blue-200">
-                                            {(currentPage - 1) * 5 + index + 1}. {app._id?.slice(-6) || "N/A"}
+                                            {startEntry + index}. {app._id?.slice(-6) || "N/A"}
                                         </div>
                                         <div className="mt-1 space-y-1 text-xs text-blue-700 dark:text-blue-300">
                                             <div>
@@ -307,15 +348,9 @@ const AppointmentTable = () => {
                                 <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
                                     Appointment Date
                                 </th>
-                                <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
-                                    Status
-                                </th>
-                                <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
-                                    Specialty
-                                </th>
-                                <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">
-                                    Action
-                                </th>
+                                <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Status</th>
+                                <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Specialty</th>
+                                <th className="border px-3 py-2 text-center text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -326,7 +361,7 @@ const AppointmentTable = () => {
                                         className="border-b hover:bg-blue-50/50 dark:border-blue-800/50 dark:hover:bg-blue-900/20"
                                     >
                                         <td className="border px-3 py-2.5 text-blue-800 dark:border-blue-800/50 dark:text-blue-300">
-                                            {(currentPage - 1) * 5 + index + 1}
+                                            {startEntry + index}
                                         </td>
                                         <td className="border px-3 py-2.5 text-blue-800 dark:border-blue-800/50 dark:text-blue-300">
                                             {app._id || "N/A"}
@@ -487,6 +522,17 @@ const AppointmentTable = () => {
                 isOpen={isVerification}
                 onConfirmDelete={handleConfirmDelete}
                 onClose={handleCloseModal}
+            />
+
+            {/* Export Modal with Status */}
+            <ExportPdfModal
+                isOpen={showExportModal}
+                onClose={() => setShowExportModal(false)}
+                onGenerate={handleGeneratePDF}
+                exportDates={exportDates}
+                setExportDates={setExportDates}
+                exportStatus={exportStatus}
+                setExportStatus={setExportStatus}
             />
         </div>
     );

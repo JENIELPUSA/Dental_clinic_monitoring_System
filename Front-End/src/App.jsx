@@ -26,50 +26,55 @@ import PublicRoute from "./component/PublicRoute/PublicRoute";
 import InventoryLayout from "./component/Inventory/InventoryLayout";
 import ManageLayout from "./component/DashboardAdminComponent/ManageAccountLayout";
 import LandingPage from "./component/LandingPage/landingPage";
+import AuditLogs from "./component/LogsAndAudit/LogsAndAudit";
+import Reports from "./component/Reports/GenerateReport"
 
 function App() {
-  const router = createBrowserRouter([
-    {
-      element: <PublicRoute />,
-      children: [
-        { path: "/login", element: <LandingPage /> },
-        { path: "/reset-password/:token", element: <ResetPassword /> },
-        { path: "/", element: <LandingPage /> },
-      ],
-    },
-
-    // PRIVATE ROUTES (Dashboard)
-    {
-      path: "/dashboard",
-      element: <PrivateRoute />,
-      children: [
+    const router = createBrowserRouter([
         {
-          path: "",
-          element: <Layout />,
-          children: [
-            { index: true, element: <DashboardPage /> },
-            { path: "dentalhistory", element: <DentalHistoryTable /> },
-            { path: "appointment", element: <AppointmentLayout /> },
-            { path: "bill", element: <BillsLayout /> },
-            { path: "booking", element: <BookingDisplay /> },
-            { path: "prescription", element: <Prescription /> },
-            { path: "Schedule", element: <LayoutSchedule /> },
-            { path: "Change-Password", element: <UpdatePassword /> },
-            { path: "Treatment", element: <TreatmentTable /> },
-            { path: "Insurance", element: <InsuranceTable /> },
-            { path: "Inventory", element: <InventoryLayout /> },
-            { path: "Accounts", element: <ManageLayout /> },
-          ],
+            element: <PublicRoute />,
+            children: [
+                { path: "/login", element: <LandingPage /> },
+                { path: "/reset-password/:token", element: <ResetPassword /> },
+                { path: "/", element: <LandingPage /> },
+            ],
         },
-      ],
-    },
-  ]);
 
-  return (
-    <ThemeProvider storageKey="theme">
-      <RouterProvider router={router} />
-    </ThemeProvider>
-  );
+        // PRIVATE ROUTES (Dashboard)
+        {
+            path: "/dashboard",
+            element: <PrivateRoute />,
+            children: [
+                {
+                    path: "",
+                    element: <Layout />,
+                    children: [
+                        { index: true, element: <DashboardPage /> },
+                        { path: "dentalhistory", element: <DentalHistoryTable /> },
+                        { path: "appointment", element: <AppointmentLayout /> },
+                        { path: "bill", element: <BillsLayout /> },
+                        { path: "booking", element: <BookingDisplay /> },
+                        { path: "prescription", element: <Prescription /> },
+                        { path: "Schedule", element: <LayoutSchedule /> },
+                        { path: "Change-Password", element: <UpdatePassword /> },
+                        { path: "Treatment", element: <TreatmentTable /> },
+                        { path: "Insurance", element: <InsuranceTable /> },
+                        { path: "Inventory", element: <InventoryLayout /> },
+                        { path: "Accounts", element: <ManageLayout /> },
+                        { path: "Logs", element: <AuditLogs /> },
+                        { path: "Reports", element: <Reports /> },
+         
+                    ],
+                },
+            ],
+        },
+    ]);
+
+    return (
+        <ThemeProvider storageKey="theme">
+            <RouterProvider router={router} />
+        </ThemeProvider>
+    );
 }
 
 export default App;

@@ -10,6 +10,8 @@ router.route('/')
 router.route('/:id')
     .patch(authController.protect,releaseController.updateItem)
     .delete(authController.protect,releaseController.deleteItem)
+router.route('/GenerateReleaseReportPDF')
+    .get(authController.protect,releaseController.GenerateReleaseHistoryPDF)
 
 
 module.exports=router

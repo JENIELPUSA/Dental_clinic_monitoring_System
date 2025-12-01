@@ -209,6 +209,62 @@ export const BillDisplayProvider = ({ children }) => {
         }
     };
 
+    const GenerateBillHistoryPDFByPatient = async (queryParams = {}) => {
+        if (!authToken) {
+            setError("Authentication required");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // Construct full URL with query params
+            const baseUrl = `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Bill/GenerateBillHistoryPDFByPatient`;
+            const url = new URL(baseUrl);
+
+            // Append all query params (From, To, status, search, etc.)
+            Object.keys(queryParams).forEach((key) => {
+                if (queryParams[key] !== undefined && queryParams[key] !== null && queryParams[key] !== "") {
+                    url.searchParams.append(key, queryParams[key]);
+                }
+            });
+
+            // Fetch PDF as Blob
+            const response = await axiosInstance.get(url.toString(), {
+                withCredentials: true,
+                headers: {
+                    Authorization: `Bearer ${authToken}`,
+                    Accept: "application/pdf",
+                },
+                responseType: "blob", // Critical: treat response as binary PDF
+            });
+
+            // Create blob URL and trigger preview/download
+            const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+
+            // Option 1: Open in new tab (inline preview)
+            window.open(pdfUrl, "_blank");
+
+            // Option 2: Auto-download (uncomment if preferred)
+            // const link = document.createElement('a');
+            // link.href = pdfUrl;
+            // link.download = `appointment-report-${new Date().toISOString().slice(0, 10)}.pdf`;
+            // document.body.appendChild(link);
+            // link.click();
+            // document.body.removeChild(link);
+            // URL.revokeObjectURL(pdfUrl);
+        } catch (error) {
+            console.error("Error generating PDF report:", error);
+            if (error.response?.status === 401) {
+                setError("Session expired. Please log in again.");
+            } else {
+                setError("Failed to generate report. Please try again.");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <BillDisplayContext.Provider
             value={{
@@ -224,6 +280,7 @@ export const BillDisplayProvider = ({ children }) => {
                 currentPage,
                 loading,
                 setCurrentPage,
+                GenerateBillHistoryPDFByPatient,
             }}
         >
             {children}

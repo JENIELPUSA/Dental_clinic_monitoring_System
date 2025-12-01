@@ -1,4 +1,4 @@
-import { History,ShieldCheck ,Pill,BookOpen,KeyRound , Banknote,Home, BriefcaseMedical,PackagePlus,CalendarDays , Stethoscope, ShoppingBag, UserCheck, UserPlus, Users, Key } from "lucide-react";
+import { History,ShieldCheck ,Pill,BookOpen,KeyRound , Banknote,Home, Logs ,BriefcaseMedical,CalendarDays , Stethoscope, ShoppingBag, UserCheck, UserPlus, Users, Key } from "lucide-react";
 
 
 export const navbarLinks = [
@@ -64,10 +64,13 @@ export const navbarLinks = [
                 label: "Inventory",
                 icon: BriefcaseMedical ,
                 path: "/dashboard/Inventory",
+            },
+             {
+                label: "Activity Logs",
+                icon: Logs  ,
+                path: "/dashboard/Logs",
             }
-            
-            
-        
+         
         ],
     },
     {

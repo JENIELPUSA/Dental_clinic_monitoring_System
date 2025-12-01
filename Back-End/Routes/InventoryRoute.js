@@ -10,6 +10,9 @@ router.route('/')
 router.route('/:id')
     .patch(authController.protect,inventoryController.updateInventory)
     .delete(authController.protect,inventoryController.deleteInventory)
+router.route('/GenerateInventoryPDF')
+    .get(authController.protect,inventoryController.GenerateInventoryPDF)
+
 
 
 module.exports=router

@@ -5,27 +5,45 @@ const Prescription = require("./../Models/Prescription");
 const Apifeatures = require("./../Utils/ApiFeatures");
 const axios = require("axios");
 const Appointment = require("../Models/appointmentSchema");
-const cloudinary = require("./../Utils/cloudinary")
+const cloudinary = require("./../Utils/cloudinary");
 const PDFDocument = require("pdfkit");
 const AppointmentStepProcess = require("./../Models/AppointmentStepProcess");
 
 exports.createPrescription = async (req, res) => {
   try {
-    const { appointment_id, medications, special_instructions, refills } = req.body;
-
+    const {
+      appointment_id,
+      medications,
+      postCare,
+      special_instructions,
+      refills,
+    } = req.body;
     // Validate required fields
-    if (!appointment_id || !Array.isArray(medications) || medications.length === 0) {
+    if (
+      !appointment_id ||
+      !Array.isArray(medications) ||
+      medications.length === 0
+    ) {
       return res.status(400).json({
-        message: "Missing required fields: appointment_id and medications[]"
+        message: "Missing required fields: appointment_id and medications[]",
       });
     }
 
+    // Validate each medication
     for (const med of medications) {
-      const requiredFields = ['medication_name', 'dosage', 'frequency', 'start_date', 'end_date'];
+      const requiredFields = [
+        "medication_name",
+        "dosage",
+        "frequency",
+        "start_date",
+        "end_date",
+      ];
       for (const field of requiredFields) {
         if (!med[field]) {
           return res.status(400).json({
-            message: `Each medication must include: ${requiredFields.join(', ')}`
+            message: `Each medication must include: ${requiredFields.join(
+              ", "
+            )}`,
           });
         }
       }
@@ -33,48 +51,80 @@ exports.createPrescription = async (req, res) => {
       const startDate = new Date(med.start_date);
       const endDate = new Date(med.end_date);
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        return res.status(400).json({ message: "Invalid date format in medication dates" });
+        return res
+          .status(400)
+          .json({ message: "Invalid date format in medication dates" });
       }
       if (startDate >= endDate) {
         return res.status(400).json({
-          message: `End date must be after start date for ${med.medication_name}`
+          message: `End date must be after start date for ${med.medication_name}`,
         });
+      }
+    }
+
+    // Optional: Validate postCare if provided
+    let validatedPostCare = {};
+    if (postCare) {
+      if (typeof postCare !== "object" || Array.isArray(postCare)) {
+        return res.status(400).json({ message: "postCare must be an object" });
+      }
+
+      validatedPostCare = {
+        instructions: postCare.instructions?.trim() || "",
+        medication: postCare.medication?.trim() || "",
+        nextVisit: null,
+      };
+
+      if (postCare.nextVisit) {
+        const nextVisitDate = new Date(postCare.nextVisit);
+        if (isNaN(nextVisitDate.getTime())) {
+          return res
+            .status(400)
+            .json({ message: "Invalid date format for postCare.nextVisit" });
+        }
+        validatedPostCare.nextVisit = nextVisitDate;
       }
     }
 
     // Check appointment
     const appointment = await Appointment.findById(appointment_id)
-      .populate('patient_id')
-      .populate('doctor_id');
+      .populate("patient_id")
+      .populate("doctor_id");
     if (!appointment) {
       return res.status(404).json({ message: "Appointment not found" });
     }
     if (appointment.appointment_status !== "Completed") {
-      return res.status(400).json({ 
-        message: "Prescription can only be added to a completed appointment" 
+      return res.status(400).json({
+        message: "Prescription can only be added to a completed appointment",
       });
     }
 
     // Prepare prescription data
     const prescriptionData = {
       appointment_id,
-      medications: medications.map(m => ({
+      medications: medications.map((m) => ({
         medication_name: m.medication_name.trim(),
         dosage: m.dosage.trim(),
         frequency: m.frequency.trim(),
         start_date: new Date(m.start_date),
         end_date: new Date(m.end_date),
       })),
-      prescribed_date: new Date(),
-      ...(special_instructions && { special_instructions: special_instructions.trim() }),
-      ...(refills !== undefined && { refills: parseInt(refills, 10) })
+      postCare: validatedPostCare,
+      // prescribed_date will use default from schema (current date/time)
+      ...(special_instructions && {
+        special_instructions: special_instructions.trim(),
+      }),
+      ...(refills !== undefined && { refills: parseInt(refills, 10) }),
     };
 
     // Create prescription
     const prescription = await Prescription.create(prescriptionData);
 
     // Generate and upload PDF
-    const pdfUrl = await generateAndUploadPrescriptionPDF(prescription, appointment);
+    const pdfUrl = await generateAndUploadPrescriptionPDF(
+      prescription,
+      appointment
+    );
     prescription.fileUrl = pdfUrl;
     await prescription.save();
 
@@ -85,7 +135,7 @@ exports.createPrescription = async (req, res) => {
         $set: {
           "steps.$[prescriptionStep].status": "completed",
           "steps.$[completedStep].status": "in-progress",
-          currentStep: 5, 
+          currentStep: 5,
         },
       },
       {
@@ -98,15 +148,15 @@ exports.createPrescription = async (req, res) => {
     );
 
     // Fetch full prescription with details
-    const prescriptionWithDetails = await getPrescriptionWithDetails(prescription._id);
+    const prescriptionWithDetails = await getPrescriptionWithDetails(
+      prescription._id
+    );
 
-    // Send success response
     return res.status(201).json({
       status: "success",
       message: "Prescription created successfully",
-      data: prescriptionWithDetails
+      data: prescriptionWithDetails,
     });
-
   } catch (error) {
     console.error("Error creating prescription:", error);
     return res.status(500).json({
@@ -117,18 +167,18 @@ exports.createPrescription = async (req, res) => {
 };
 
 const generateAndUploadPrescriptionPDF = async (prescription, appointment) => {
-  const doc = new PDFDocument({ margin: 50, size: 'A4' });
-  
+  const doc = new PDFDocument({ margin: 50, size: "A4" });
+
   // Generate PDF content with prescription, appointment data
   generatePDFContent(doc, prescription, appointment);
 
   const chunks = [];
-  doc.on('data', chunk => chunks.push(chunk));
+  doc.on("data", (chunk) => chunks.push(chunk));
   doc.end();
 
   await new Promise((resolve, reject) => {
-    doc.on('end', resolve);
-    doc.on('error', reject);
+    doc.on("end", resolve);
+    doc.on("error", reject);
   });
 
   const pdfBuffer = Buffer.concat(chunks);
@@ -162,52 +212,74 @@ const generatePDFContent = (doc, prescription, appointment) => {
   const pageWidth = doc.page.width;
   const pageHeight = doc.page.height;
   const margin = 50;
+  const footerHeight = 80; // Reserved space for signature + footer text
+  const bottomThreshold = pageHeight - margin - footerHeight;
 
   // Colors
-  const primaryBlue = '#1e5aa8';
-  const lightBlue = '#e3f2fd';
-  const textGray = '#333333';
-  const borderGray = '#d0d0d0';
+  const primaryBlue = "#1e5aa8";
+  const lightBlue = "#e3f2fd";
+  const textGray = "#333333";
+  const borderGray = "#d0d0d0";
 
   // Helper: Format Date
   const formatDate = (date) => {
     try {
-      return new Date(date).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      return new Date(date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       });
     } catch {
-      return 'N/A';
+      return "N/A";
     }
+  };
+
+  // Helper: Check if content fits on current page
+  const checkSpace = (requiredHeight) => {
+    return doc.y + requiredHeight <= bottomThreshold;
+  };
+
+  // Helper: Add new page if needed
+  const ensureSpace = (requiredHeight) => {
+    if (!checkSpace(requiredHeight)) {
+      doc.addPage();
+      doc.y = margin + 20;
+      return true; // Page was added
+    }
+    return false; // No page needed
   };
 
   // Get patient info
   const patient = appointment.patient_id || {};
-  const patientName = patient.first_name && patient.last_name 
-    ? `${patient.first_name} ${patient.last_name}` 
-    : 'N/A';
-  const patientAddress = patient.address || 'N/A';
-  const patientPhone = patient.phone || 'N/A';
-  
+  const patientName =
+    patient.first_name && patient.last_name
+      ? `${patient.first_name} ${patient.last_name}`
+      : "N/A";
+  const patientAddress = patient.address || "N/A";
+  const patientPhone = patient.phone || "N/A";
+
   // Get doctor info
   const doctor = appointment.doctor_id || {};
-  const doctorName = doctor.first_name && doctor.last_name 
-    ? `Dr. ${doctor.first_name} ${doctor.last_name}` 
-    : 'Dr. N/A';
-  const doctorLicense = doctor.license_number || 'N/A';
+  const doctorName =
+    doctor.first_name && doctor.last_name
+      ? `Dr. ${doctor.first_name} ${doctor.last_name}`
+      : "Dr. N/A";
+  const doctorLicense = doctor.license_number || "N/A";
 
   // ========== HEADER ==========
-  doc.fillColor(primaryBlue).fontSize(20).font('Helvetica-Bold');
-  doc.text('DENTAL CLINIC', margin, margin, { align: 'center' });
-  
-  doc.fontSize(10).font('Helvetica').fillColor(textGray);
-  doc.text('123 Dental Street, City, Country', { align: 'center' });
-  doc.text('Phone: (123) 456-7890 | Email: info@dentalclinic.com', { align: 'center' });
+  doc.fillColor(primaryBlue).fontSize(20).font("Helvetica-Bold");
+  doc.text("DOC.SACLOLO DENTAL CARE", margin, margin, { align: "center" });
+
+  doc.fontSize(10).font("Helvetica").fillColor(textGray);
+  doc.text("Naval,Biliran", { align: "center" });
+  doc.text("Phone: (123) 456-7890 | Email: info@docsaclolo.com", {
+    align: "center",
+  });
   doc.moveDown(0.5);
 
   // Divider
-  doc.moveTo(margin, doc.y)
+  doc
+    .moveTo(margin, doc.y)
     .lineTo(pageWidth - margin, doc.y)
     .strokeColor(primaryBlue)
     .lineWidth(2)
@@ -217,76 +289,87 @@ const generatePDFContent = (doc, prescription, appointment) => {
   // ========== RX SYMBOL & TITLE ==========
   const rxY = doc.y;
   drawRxSymbol(doc, margin, rxY, 32);
-  
-  doc.fontSize(18).font('Helvetica-Bold').fillColor(primaryBlue);
-  doc.text('PRESCRIPTION', margin + 55, rxY + 5);
+
+  doc.fontSize(18).font("Helvetica-Bold").fillColor(primaryBlue);
+  doc.text("PRESCRIPTION", margin + 55, rxY + 5);
   doc.moveDown(1.2);
 
   // ========== PRESCRIPTION INFO (2 COLUMNS) ==========
   const infoY = doc.y;
-  doc.fontSize(9).font('Helvetica').fillColor(textGray);
-  
+  doc.fontSize(9).font("Helvetica").fillColor(textGray);
+
   // Left column
   doc.text(`Rx ID:`, margin, infoY);
   doc.text(prescription._id.toString(), margin + 45, infoY);
-  
+
   // Right column
   doc.text(`Prescribed:`, pageWidth / 2, infoY);
-  doc.text(formatDate(prescription.prescribed_date), pageWidth / 2 + 60, infoY);
-  
+  doc.text(formatDate(prescription.createdAt), pageWidth / 2 + 60, infoY);
+
   doc.text(`Appointment:`, pageWidth / 2, infoY + 12);
-  doc.text(formatDate(appointment.appointment_date), pageWidth / 2 + 60, infoY + 12);
-  
+  doc.text(
+    formatDate(appointment.appointment_date),
+    pageWidth / 2 + 60,
+    infoY + 12
+  );
+
   doc.moveDown(2);
 
   // ========== PATIENT INFORMATION ==========
+  ensureSpace(70); // Check space for patient section
+
   const patientBoxY = doc.y;
-  
+
   // Header bar
-  doc.fillColor(lightBlue)
+  doc
+    .fillColor(lightBlue)
     .rect(margin, patientBoxY, pageWidth - margin * 2, 20)
     .fill();
-  
-  doc.fillColor(primaryBlue).fontSize(11).font('Helvetica-Bold');
-  doc.text('PATIENT INFORMATION', margin + 10, patientBoxY + 6);
-  
+
+  doc.fillColor(primaryBlue).fontSize(11).font("Helvetica-Bold");
+  doc.text("PATIENT INFORMATION", margin + 10, patientBoxY + 6);
+
   // Patient details box
   const patientContentY = patientBoxY + 20;
-  doc.strokeColor(borderGray)
+  doc
+    .strokeColor(borderGray)
     .lineWidth(1)
     .rect(margin, patientContentY, pageWidth - margin * 2, 50)
     .stroke();
-  
-  doc.fontSize(9).font('Helvetica').fillColor(textGray);
+
+  doc.fontSize(9).font("Helvetica").fillColor(textGray);
   const pY = patientContentY + 8;
   const labelCol = margin + 10;
   const valueCol = margin + 70;
-  
-  doc.font('Helvetica-Bold').text('Name:', labelCol, pY);
-  doc.font('Helvetica').text(patientName, valueCol, pY);
-  
-  doc.font('Helvetica-Bold').text('Address:', labelCol, pY + 15);
-  doc.font('Helvetica').text(patientAddress, valueCol, pY + 15, { 
-    width: pageWidth - valueCol - margin - 10 
+
+  doc.font("Helvetica-Bold").text("Name:", labelCol, pY);
+  doc.font("Helvetica").text(patientName, valueCol, pY);
+
+  doc.font("Helvetica-Bold").text("Address:", labelCol, pY + 15);
+  doc.font("Helvetica").text(patientAddress, valueCol, pY + 15, {
+    width: pageWidth - valueCol - margin - 10,
   });
-  
-  doc.font('Helvetica-Bold').text('Phone:', labelCol, pY + 30);
-  doc.font('Helvetica').text(patientPhone, valueCol, pY + 30);
-  
+
+  doc.font("Helvetica-Bold").text("Phone:", labelCol, pY + 30);
+  doc.font("Helvetica").text(patientPhone, valueCol, pY + 30);
+
   doc.y = patientContentY + 50;
   doc.moveDown(1);
 
   // ========== MEDICATIONS ==========
+  ensureSpace(100); // Check space for medications header
+
   const medHeaderY = doc.y;
-  
+
   // Header bar
-  doc.fillColor(lightBlue)
+  doc
+    .fillColor(lightBlue)
     .rect(margin, medHeaderY, pageWidth - margin * 2, 20)
     .fill();
-  
-  doc.fillColor(primaryBlue).fontSize(11).font('Helvetica-Bold');
-  doc.text('MEDICATIONS', margin + 10, medHeaderY + 6);
-  
+
+  doc.fillColor(primaryBlue).fontSize(11).font("Helvetica-Bold");
+  doc.text("MEDICATIONS", margin + 10, medHeaderY + 6);
+
   doc.y = medHeaderY + 20;
   doc.moveDown(0.5);
 
@@ -294,19 +377,15 @@ const generatePDFContent = (doc, prescription, appointment) => {
   if (prescription.medications && prescription.medications.length > 0) {
     prescription.medications.forEach((med, index) => {
       const rowHeight = 75;
-      const currentY = doc.y;
 
-      // Check if need new page - with better space calculation for footer
-      const spaceNeeded = rowHeight + 120; // 120px for signature + footer
-      if (currentY + spaceNeeded > pageHeight - margin) {
-        doc.addPage();
-        doc.y = margin + 20;
-      }
+      // Ensure space for each medication
+      ensureSpace(rowHeight + 10);
+
+      const medY = doc.y;
 
       // Medication container
-      const medY = doc.y;
-      
-      doc.fillColor('#ffffff')
+      doc
+        .fillColor("#ffffff")
         .strokeColor(borderGray)
         .lineWidth(1)
         .roundedRect(margin, medY, pageWidth - margin * 2, rowHeight, 5)
@@ -317,49 +396,57 @@ const generatePDFContent = (doc, prescription, appointment) => {
       const rightCol = pageWidth / 2 + 10;
 
       // Medication number badge
-      doc.fillColor(primaryBlue)
+      doc
+        .fillColor(primaryBlue)
         .circle(leftCol - 5, contentStartY + 5, 10)
         .fill();
-      
-      doc.fillColor('#ffffff').fontSize(9).font('Helvetica-Bold');
-      doc.text(index + 1, leftCol - 9, contentStartY + 1, { width: 8, align: 'center' });
+
+      doc.fillColor("#ffffff").fontSize(9).font("Helvetica-Bold");
+      doc.text(index + 1, leftCol - 9, contentStartY + 1, {
+        width: 8,
+        align: "center",
+      });
 
       // Medication name (prominent)
-      doc.fillColor(primaryBlue).fontSize(11).font('Helvetica-Bold');
-      doc.text(med.medication_name || 'N/A', leftCol + 12, contentStartY);
+      doc.fillColor(primaryBlue).fontSize(11).font("Helvetica-Bold");
+      doc.text(med.medication_name || "N/A", leftCol + 12, contentStartY);
 
       // Left column details
-      doc.fillColor(textGray).fontSize(9).font('Helvetica-Bold');
-      doc.text('Dosage:', leftCol, contentStartY + 20);
-      doc.font('Helvetica').fontSize(9);
-      doc.text(med.dosage || 'N/A', leftCol, contentStartY + 32);
+      doc.fillColor(textGray).fontSize(9).font("Helvetica-Bold");
+      doc.text("Dosage:", leftCol, contentStartY + 20);
+      doc.font("Helvetica").fontSize(9);
+      doc.text(med.dosage || "N/A", leftCol, contentStartY + 32);
 
-      doc.font('Helvetica-Bold');
-      doc.text('Frequency:', leftCol, contentStartY + 47);
-      doc.font('Helvetica');
-      doc.text(med.frequency || 'N/A', leftCol, contentStartY + 59);
+      doc.font("Helvetica-Bold");
+      doc.text("Frequency:", leftCol, contentStartY + 47);
+      doc.font("Helvetica");
+      doc.text(med.frequency || "N/A", leftCol, contentStartY + 59);
 
       // Right column details
-      doc.font('Helvetica-Bold');
-      doc.text('Duration:', rightCol, contentStartY + 20);
-      doc.font('Helvetica').fontSize(8);
+      doc.font("Helvetica-Bold");
+      doc.text("Duration:", rightCol, contentStartY + 20);
+      doc.font("Helvetica").fontSize(8);
       doc.text(`${formatDate(med.start_date)}`, rightCol, contentStartY + 32);
       doc.text(`to ${formatDate(med.end_date)}`, rightCol, contentStartY + 42);
 
       // Refills (if applicable)
       if (prescription.refills !== undefined && prescription.refills !== null) {
-        doc.font('Helvetica-Bold').fontSize(9);
-        doc.text('Refills:', rightCol, contentStartY + 57);
-        doc.font('Helvetica');
-        doc.text(prescription.refills.toString(), rightCol + 35, contentStartY + 57);
+        doc.font("Helvetica-Bold").fontSize(9);
+        doc.text("Refills:", rightCol, contentStartY + 57);
+        doc.font("Helvetica");
+        doc.text(
+          prescription.refills.toString(),
+          rightCol + 35,
+          contentStartY + 57
+        );
       }
 
       doc.y = medY + rowHeight;
       doc.moveDown(0.5);
     });
   } else {
-    doc.fontSize(9).fillColor(textGray).font('Helvetica-Oblique');
-    doc.text('No medications prescribed.', margin + 10);
+    doc.fontSize(9).fillColor(textGray).font("Helvetica-Oblique");
+    doc.text("No medications prescribed.", margin + 10);
     doc.moveDown(1);
   }
 
@@ -367,138 +454,222 @@ const generatePDFContent = (doc, prescription, appointment) => {
   if (prescription.special_instructions) {
     // Calculate space needed for special instructions
     const testHeight = doc.heightOfString(prescription.special_instructions, {
-      width: pageWidth - margin * 2 - 20
+      width: pageWidth - margin * 2 - 20,
     });
     const instructionsHeight = testHeight + 40;
-    
-    // Check for page space including footer
-    if (doc.y + instructionsHeight + 100 > pageHeight - margin) {
-      doc.addPage();
-      doc.y = margin + 20;
-    }
+
+    // Check for page space
+    ensureSpace(instructionsHeight);
 
     doc.moveDown(0.5);
-    
+
     const instY = doc.y;
-    const boxHeight = instructionsHeight;
-    
+
     // Draw instruction box
-    doc.fillColor('#fff4e6')
-      .strokeColor('#ffa726')
+    doc
+      .fillColor("#fff4e6")
+      .strokeColor("#ffa726")
       .lineWidth(1)
-      .roundedRect(margin, instY, pageWidth - margin * 2, boxHeight, 5)
+      .roundedRect(margin, instY, pageWidth - margin * 2, instructionsHeight, 5)
       .fillAndStroke();
-    
+
     // Instruction content
-    doc.fillColor('#f57c00').fontSize(10).font('Helvetica-Bold');
-    doc.text('⚠ Special Instructions:', margin + 10, instY + 10);
-    
-    doc.fillColor(textGray).fontSize(9).font('Helvetica');
+    doc.fillColor("#f57c00").fontSize(10).font("Helvetica-Bold");
+    doc.text("⚠ Special Instructions:", margin + 10, instY + 10);
+
+    doc.fillColor(textGray).fontSize(9).font("Helvetica");
     doc.text(prescription.special_instructions, margin + 10, instY + 25, {
       width: pageWidth - margin * 2 - 20,
-      align: 'left'
+      align: "left",
     });
-    
-    doc.y = instY + boxHeight;
+
+    doc.y = instY + instructionsHeight;
     doc.moveDown(1);
   }
 
-  // ========== FOOTER SECTION - COMPLETELY REWORKED ==========
-  
-  // Define footer heights
+  // ========== POST-CARE INSTRUCTIONS ==========
+  const postCare = prescription.postCare || {};
+  const hasPostCare =
+    postCare.instructions || postCare.medication || postCare.nextVisit;
+
+  if (hasPostCare) {
+    // Calculate content height
+    let contentText = "";
+    if (postCare.instructions)
+      contentText += `• Instructions: ${postCare.instructions}\n`;
+    if (postCare.medication)
+      contentText += `• Additional Medication: ${postCare.medication}\n`;
+    if (postCare.nextVisit)
+      contentText += `• Next Visit: ${formatDate(postCare.nextVisit)}\n`;
+
+    const testHeight = doc.heightOfString(contentText, {
+      width: pageWidth - margin * 2 - 20,
+    });
+    const postCareHeight = testHeight + 50; // padding
+
+    // Check if need new page
+    ensureSpace(postCareHeight);
+
+    doc.moveDown(0.5);
+
+    const postCareY = doc.y;
+
+    // Draw post-care box
+    doc
+      .fillColor("#f0f7ff")
+      .strokeColor("#a0c8ff")
+      .lineWidth(1)
+      .roundedRect(margin, postCareY, pageWidth - margin * 2, postCareHeight, 5)
+      .fillAndStroke();
+
+    // Title
+    doc.fillColor(primaryBlue).fontSize(11).font("Helvetica-Bold");
+    doc.text("POST-CARE INSTRUCTIONS", margin + 10, postCareY + 10);
+
+    // Content
+    doc.fillColor(textGray).fontSize(9).font("Helvetica");
+    let currentY = postCareY + 25;
+    if (postCare.instructions) {
+      doc.text(
+        `• Instructions: ${postCare.instructions}`,
+        margin + 15,
+        currentY,
+        {
+          width: pageWidth - margin * 2 - 30,
+        }
+      );
+      currentY +=
+        doc.heightOfString(`• Instructions: ${postCare.instructions}`, {
+          width: pageWidth - margin * 2 - 30,
+          font: "Helvetica",
+          fontSize: 9,
+        }) + 4;
+    }
+    if (postCare.medication) {
+      doc.text(
+        `• Additional Medication: ${postCare.medication}`,
+        margin + 15,
+        currentY,
+        {
+          width: pageWidth - margin * 2 - 30,
+        }
+      );
+      currentY +=
+        doc.heightOfString(`• Additional Medication: ${postCare.medication}`, {
+          width: pageWidth - margin * 2 - 30,
+          font: "Helvetica",
+          fontSize: 9,
+        }) + 4;
+    }
+    if (postCare.nextVisit) {
+      doc.text(
+        `• Next Visit: ${formatDate(postCare.nextVisit)}`,
+        margin + 15,
+        currentY
+      );
+    }
+
+    doc.y = postCareY + postCareHeight;
+    doc.moveDown(1);
+  }
+
+  // ========== SMART FOOTER POSITIONING ==========
+  // Calculate if footer can fit on current page
   const signatureHeight = 55;
-  const footerTextHeight = 20;
-  const totalFooterHeight = signatureHeight + footerTextHeight + 30; // +30 for spacing
-  
-  // Check if we need a new page for the footer
-  if (doc.y + totalFooterHeight > pageHeight - margin) {
+  const footerTextHeight = 25;
+  const totalFooterNeeded = signatureHeight + footerTextHeight + 20;
+
+  // If not enough space, create new page
+  if (!checkSpace(totalFooterNeeded)) {
     doc.addPage();
     doc.y = margin;
   }
-  
+
+  // Position footer at bottom or after content (whichever is lower)
+  const minFooterY = doc.y + 20;
+  const maxFooterY = pageHeight - totalFooterNeeded - margin;
+  const footerStartY = Math.max(minFooterY, maxFooterY);
+
   // ========== SIGNATURE AREA ==========
-  // Position signature area with consistent spacing
-  const signatureY = Math.max(doc.y, pageHeight - totalFooterHeight);
-  doc.y = signatureY;
-  
-  // Add some space before signature
-  doc.moveDown(0.5);
-  
+  doc.y = footerStartY;
+
   const sigBoxWidth = 170;
   const sigBoxX = pageWidth - margin - sigBoxWidth;
   const currentSigY = doc.y;
-  
+
   // Signature box
-  doc.strokeColor(borderGray)
+  doc
+    .strokeColor(borderGray)
     .lineWidth(1)
     .rect(sigBoxX, currentSigY, sigBoxWidth, signatureHeight)
     .stroke();
-  
+
   // Signature line
   const sigLineY = currentSigY + 22;
-  doc.moveTo(sigBoxX + 10, sigLineY)
+  doc
+    .moveTo(sigBoxX + 10, sigLineY)
     .lineTo(sigBoxX + sigBoxWidth - 10, sigLineY)
     .strokeColor(textGray)
     .lineWidth(1)
     .stroke();
-  
+
   // Label above line
-  doc.fontSize(7).fillColor('#888888').font('Helvetica');
-  doc.text('Authorized Signature', sigBoxX + 10, currentSigY + 8);
-  
+  doc.fontSize(7).fillColor("#888888").font("Helvetica");
+  doc.text("Authorized Signature", sigBoxX + 10, currentSigY + 8);
+
   // Doctor name below line
-  doc.fontSize(9).font('Helvetica-Bold').fillColor(textGray);
+  doc.fontSize(9).font("Helvetica-Bold").fillColor(textGray);
   doc.text(doctorName, sigBoxX + 10, sigLineY + 5, {
     width: sigBoxWidth - 20,
-    align: 'left'
-  });
-  
-  // License number
-  doc.fontSize(8).font('Helvetica').fillColor(textGray);
-  doc.text(`License No: ${doctorLicense}`, sigBoxX + 10, sigLineY + 18, {
-    width: sigBoxWidth - 20,
-    align: 'left'
+    align: "left",
   });
 
-  // ========== FOOTER TEXT - FIXED POSITION ==========
-  // Always position footer text at the bottom of the page
-  const fixedFooterY = pageHeight - 30;
-  
+  // License number
+  doc.fontSize(8).font("Helvetica").fillColor(textGray);
+  doc.text(`License No: ${doctorLicense}`, sigBoxX + 10, sigLineY + 18, {
+    width: sigBoxWidth - 20,
+    align: "left",
+  });
+
+  // ========== FOOTER TEXT ==========
+  const footerTextY = currentSigY + signatureHeight + 15;
+
   // Footer divider line
-  doc.strokeColor(borderGray)
+  doc
+    .strokeColor(borderGray)
     .lineWidth(0.5)
-    .moveTo(margin, fixedFooterY - 12)
-    .lineTo(pageWidth - margin, fixedFooterY - 12)
+    .moveTo(margin, footerTextY)
+    .lineTo(pageWidth - margin, footerTextY)
     .stroke();
-  
-  // Footer text - always at the same position
-  const footerText = 'This is a computer-generated prescription. Please verify with your healthcare provider.';
-  
-  doc.fontSize(7)
-    .fillColor('#666666')
-    .font('Helvetica-Oblique')
-    .text(footerText, margin, fixedFooterY - 8, {
-      align: 'center',
-      width: pageWidth - (margin * 2)
+
+  // Footer text
+  const footerText =
+    "This is a computer-generated prescription. Please verify with your healthcare provider.";
+
+  doc
+    .fontSize(7)
+    .fillColor("#666666")
+    .font("Helvetica-Oblique")
+    .text(footerText, margin, footerTextY + 5, {
+      align: "center",
+      width: pageWidth - margin * 2,
     });
 };
 
 const drawRxSymbol = (doc, x, y, size = 40) => {
   doc.save();
-  doc.fillColor('#1e5aa8');
-  
+  doc.fillColor("#1e5aa8");
+
   // Draw clear "Rx" symbol
-  doc.fontSize(size).font('Helvetica-Bold');
-  doc.text('R', x, y);
-  
+  doc.fontSize(size).font("Helvetica-Bold");
+  doc.text("R", x, y);
+
   // Draw subscript "x"
   doc.fontSize(size * 0.6);
-  doc.text('x', x + (size * 0.5), y + (size * 0.4));
-  
+  doc.text("x", x + size * 0.5, y + size * 0.4);
+
   doc.restore();
 };
-
-
 
 const getPrescriptionWithDetails = async (prescriptionId) => {
   const result = await Prescription.aggregate([
@@ -511,7 +682,9 @@ const getPrescriptionWithDetails = async (prescriptionId) => {
         as: "appointment_info",
       },
     },
-    { $unwind: { path: "$appointment_info", preserveNullAndEmptyArrays: true } },
+    {
+      $unwind: { path: "$appointment_info", preserveNullAndEmptyArrays: true },
+    },
     {
       $lookup: {
         from: "patients",
@@ -541,21 +714,36 @@ const getPrescriptionWithDetails = async (prescriptionId) => {
         fileUrl: 1,
         patient_name: {
           $cond: {
-            if: { $and: ["$patient_info.first_name", "$patient_info.last_name"] },
-            then: { $concat: ["$patient_info.first_name", " ", "$patient_info.last_name"] },
-            else: "N/A"
-          }
+            if: {
+              $and: ["$patient_info.first_name", "$patient_info.last_name"],
+            },
+            then: {
+              $concat: [
+                "$patient_info.first_name",
+                " ",
+                "$patient_info.last_name",
+              ],
+            },
+            else: "N/A",
+          },
         },
         doctor_name: {
           $cond: {
             if: { $and: ["$doctor_info.first_name", "$doctor_info.last_name"] },
-            then: { $concat: ["Dr. ", "$doctor_info.first_name", " ", "$doctor_info.last_name"] },
-            else: "N/A"
-          }
+            then: {
+              $concat: [
+                "Dr. ",
+                "$doctor_info.first_name",
+                " ",
+                "$doctor_info.last_name",
+              ],
+            },
+            else: "N/A",
+          },
         },
         patient_address: "$patient_info.address",
         patient_phone: "$patient_info.contact_number",
-        appointment_date: "$appointment_info.appointment_date"
+        appointment_date: "$appointment_info.appointment_date",
       },
     },
   ]);
@@ -605,7 +793,8 @@ exports.DisplayPrescription = AsyncErrorHandler(async (req, res) => {
           appointment_id: 1,
           medications: 1,
           fileUrl: 1,
-          createdAt: 1, // ✅ Ensure this is included
+          createdAt: 1,
+          postCare: 1,
           patient_id: "$Appointment_info.patient_id",
           patient_name: {
             $cond: {
@@ -753,7 +942,6 @@ exports.updatePrescription = AsyncErrorHandler(async (req, res, next) => {
   });
 });
 
-
 exports.deletePrescription = AsyncErrorHandler(async (req, res, next) => {
   // First, aggregate to fetch the appointment with patient and doctor details
   const prescriptionWithDetails = await Prescription.aggregate([
@@ -800,10 +988,12 @@ exports.deletePrescription = AsyncErrorHandler(async (req, res, next) => {
 
 exports.DisplaySpecificPrescription = AsyncErrorHandler(async (req, res) => {
   const { id } = req.params;
-  if (!id) return res.status(400).json({ message: "Prescription ID is required." });
+  if (!id)
+    return res.status(400).json({ message: "Prescription ID is required." });
 
   const prescrip = await Prescription.findById(id);
-  if (!prescrip) return res.status(404).json({ message: "Prescription not found." });
+  if (!prescrip)
+    return res.status(404).json({ message: "Prescription not found." });
 
   try {
     let fileUrl = prescrip.fileUrl;
@@ -817,14 +1007,21 @@ exports.DisplaySpecificPrescription = AsyncErrorHandler(async (req, res) => {
         });
 
         // Kung walang error, may file talaga
-        fileUrl = cloudinary.url(prescrip.filePublicId, { resource_type: "raw", sign_url: true });
+        fileUrl = cloudinary.url(prescrip.filePublicId, {
+          resource_type: "raw",
+          sign_url: true,
+        });
       } catch (err) {
         // Kung Cloudinary says "not found"
         console.error("Cloudinary file not found:", err.message);
-        return res.status(404).json({ message: "Prescription file not found on Cloudinary." });
+        return res
+          .status(404)
+          .json({ message: "Prescription file not found on Cloudinary." });
       }
     } else if (!fileUrl) {
-      return res.status(404).json({ message: "No prescription file available." });
+      return res
+        .status(404)
+        .json({ message: "No prescription file available." });
     }
 
     // Stream PDF
@@ -836,15 +1033,22 @@ exports.DisplaySpecificPrescription = AsyncErrorHandler(async (req, res) => {
     });
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="Prescription_${prescrip._id}.pdf"`);
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="Prescription_${prescrip._id}.pdf"`
+    );
     res.setHeader("Access-Control-Allow-Origin", "*");
 
     response.data.pipe(res);
   } catch (error) {
     console.error("Error streaming prescription:", error.message);
     if (!res.headersSent) {
-      return res.status(500).json({ message: "Failed to stream prescription", error: error.message });
+      return res
+        .status(500)
+        .json({
+          message: "Failed to stream prescription",
+          error: error.message,
+        });
     }
   }
 });
-

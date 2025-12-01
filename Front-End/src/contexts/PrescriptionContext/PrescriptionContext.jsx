@@ -53,9 +53,14 @@ export const PrescriptionDisplayProvider = ({ children }) => {
     };
 
     const AddPrescription = async (values) => {
-        console.log("values before POST", values);
-
         try {
+            // Format postCare dates if provided
+            const formattedPostCare = {
+                instructions: values.postCare?.instructions || "",
+                medication: values.postCare?.medication || "",
+                nextVisit: values.postCare?.nextVisit ? new Date(values.postCare.nextVisit).toISOString() : null,
+            };
+
             const res = await axiosInstance.post(
                 `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/v1/Prescription`,
                 {
@@ -65,10 +70,10 @@ export const PrescriptionDisplayProvider = ({ children }) => {
                             medication_name: med.medication_name || "",
                             dosage: med.dosage || "",
                             frequency: med.frequency || "",
-                            start_date: med.start_date ? new Date(med.start_date).toISOString() : "",
-                            end_date: med.end_date ? new Date(med.end_date).toISOString() : "",
+                            start_date: med.start_date ? new Date(med.start_date).toISOString() : null,
+                            end_date: med.end_date ? new Date(med.end_date).toISOString() : null,
                         })) || [],
-
+                    postCare: formattedPostCare,
                     fileUrl: values.fileUrl || null,
                 },
                 {

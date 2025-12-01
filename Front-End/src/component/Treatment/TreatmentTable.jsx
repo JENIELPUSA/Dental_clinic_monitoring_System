@@ -5,33 +5,37 @@ import { TreatmentDisplayContext } from "../../contexts/TreatmentContext/Treatme
 import LoadingOverlay from "../../component/ReusableComponents/LoadingOverlay";
 import StatusVerification from "../../ReusableFolder/StatusModal";
 import { AuthContext } from "../../contexts/AuthContext";
+import ExportPdfModal from "../Treatment/ExportTreatmentPDF";
 
 // Hook to detect mobile (< 640px)
 const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 640);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-  return isMobile;
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 640);
+        check();
+        window.addEventListener("resize", check);
+        return () => window.removeEventListener("resize", check);
+    }, []);
+    return isMobile;
 };
 
 const SkeletonCard = () => (
-  <div className="animate-pulse rounded-lg border border-blue-200 bg-white p-3 shadow dark:border-blue-800/50 dark:bg-blue-900/20">
-    <div className="h-3.5 w-1/2 rounded bg-blue-100 dark:bg-blue-800/40"></div>
-    <div className="mt-2 space-y-2">
-      {[...Array(4)].map((_, i) => (
-        <div key={i} className="h-3 w-full rounded bg-blue-100 dark:bg-blue-800/40"></div>
-      ))}
+    <div className="animate-pulse rounded-lg border border-blue-200 bg-white p-3 shadow dark:border-blue-800/50 dark:bg-blue-900/20">
+        <div className="h-3.5 w-1/2 rounded bg-blue-100 dark:bg-blue-800/40"></div>
+        <div className="mt-2 space-y-2">
+            {[...Array(4)].map((_, i) => (
+                <div
+                    key={i}
+                    className="h-3 w-full rounded bg-blue-100 dark:bg-blue-800/40"
+                ></div>
+            ))}
+        </div>
     </div>
-  </div>
 );
 
 const TreatmentTable = () => {
     const { authToken, linkId, role } = useContext(AuthContext);
-    const { Treatment, DeleteTreatment, fetchSpecificTreatment, isSpecifyTreatment } = useContext(TreatmentDisplayContext);
+    const { Treatment, DeleteTreatment, fetchSpecificTreatment, isSpecifyTreatment, fetchTreatmentReportPDF } = useContext(TreatmentDisplayContext);
 
     const [searchTerm, setSearchTerm] = useState("");
     const [fromDate, setFromDate] = useState("");
@@ -43,6 +47,14 @@ const TreatmentTable = () => {
     const [isVerification, setVerification] = useState(false);
     const [isDeleteID, setIsDeleteId] = useState("");
     const [loading, setLoading] = useState(false);
+
+    const [exportPatientName, setExportPatientName] = useState("");
+    const [exportDescription, setExportDescription] = useState("");
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportDates, setExportDates] = useState({
+        from: "",
+        to: "",
+    });
 
     const isMobile = useIsMobile();
     const itemsPerPage = 5;
@@ -133,6 +145,27 @@ const TreatmentTable = () => {
         setLoading(false);
     };
 
+        // Updated: Include status in export logic
+ const handleGeneratePDF = () => {
+    if (!exportDates.from || !exportDates.to) {
+        alert("Please select both 'From' and 'To' dates.");
+        return;
+    }
+    if (new Date(exportDates.from) > new Date(exportDates.to)) {
+        alert("'From' date cannot be later than 'To' date.");
+        return;
+    }
+
+    fetchTreatmentReportPDF({
+    from: exportDates.from || undefined,
+    to: exportDates.to || undefined,
+    patientName: exportPatientName.trim() !== "" ? exportPatientName.trim() : undefined,
+    description: exportDescription.trim() !== "" ? exportDescription.trim() : undefined,
+  });
+
+    setShowExportModal(false);
+};
+
     const handleConfirmDelete = async () => {
         await DeleteTreatment(isDeleteID);
         handleCloseModal();
@@ -185,6 +218,12 @@ const TreatmentTable = () => {
                             className="w-full rounded-lg border px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-blue-800/50 dark:bg-blue-900/30 dark:text-white sm:px-4 sm:py-2 sm:text-sm"
                         />
                     </div>
+                    <button
+                        onClick={() => setShowExportModal(true)}
+                        className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-medium text-white shadow hover:bg-blue-700 active:scale-95 dark:bg-blue-700 dark:hover:bg-blue-600 sm:text-sm"
+                    >
+                        Export PDF Report
+                    </button>
                 </div>
 
                 {/* Add Button (only if not patient/staff) */}
@@ -252,9 +291,7 @@ const TreatmentTable = () => {
                             </div>
                         ))
                     ) : (
-                        <div className="py-6 text-center text-sm text-blue-800 dark:text-blue-200">
-                            No treatment records found
-                        </div>
+                        <div className="py-6 text-center text-sm text-blue-800 dark:text-blue-200">No treatment records found</div>
                     )}
                 </div>
             ) : (
@@ -271,8 +308,7 @@ const TreatmentTable = () => {
                                 <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Description</th>
                                 <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Date</th>
                                 <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Cost</th>
-                                 <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Action</th>
-                                
+                                <th className="border px-3 py-2 text-blue-800 dark:border-blue-800/50 dark:text-blue-200">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -341,20 +377,21 @@ const TreatmentTable = () => {
             {filteredTreatments.length > 0 && (
                 <div className="mt-3 flex flex-col items-center justify-between gap-2 text-xs text-blue-800 dark:text-blue-200 sm:mt-4 sm:flex-row sm:text-sm">
                     <div>
-                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTreatments.length)} of {filteredTreatments.length} entries
+                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTreatments.length)} of {filteredTreatments.length}{" "}
+                        entries
                     </div>
                     <div className="flex flex-wrap justify-center gap-1">
                         <button
                             onClick={() => paginate(1)}
                             disabled={currentPage === 1}
-                            className="rounded border px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-blue-100 dark:border-blue-800/50 dark:hover:bg-blue-800/20 sm:px-3 sm:py-1"
+                            className="rounded border px-2 py-1 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-blue-800/50 dark:hover:bg-blue-800/20 sm:px-3 sm:py-1"
                         >
                             «
                         </button>
                         <button
                             onClick={() => paginate(currentPage - 1)}
                             disabled={currentPage === 1}
-                            className="rounded border px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-blue-100 dark:border-blue-800/50 dark:hover:bg-blue-800/20 sm:px-3 sm:py-1"
+                            className="rounded border px-2 py-1 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-blue-800/50 dark:hover:bg-blue-800/20 sm:px-3 sm:py-1"
                         >
                             ‹
                         </button>
@@ -375,7 +412,9 @@ const TreatmentTable = () => {
                                     key={pageNum}
                                     onClick={() => paginate(pageNum)}
                                     className={`rounded border px-2 py-1 ${
-                                        currentPage === pageNum ? "bg-blue-100 font-bold dark:bg-blue-800/50" : "hover:bg-blue-100 dark:hover:bg-blue-800/20"
+                                        currentPage === pageNum
+                                            ? "bg-blue-100 font-bold dark:bg-blue-800/50"
+                                            : "hover:bg-blue-100 dark:hover:bg-blue-800/20"
                                     } sm:px-3 sm:py-1`}
                                 >
                                     {pageNum}
@@ -386,14 +425,14 @@ const TreatmentTable = () => {
                         <button
                             onClick={() => paginate(currentPage + 1)}
                             disabled={currentPage === totalPages}
-                            className="rounded border px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-blue-100 dark:border-blue-800/50 dark:hover:bg-blue-800/20 sm:px-3 sm:py-1"
+                            className="rounded border px-2 py-1 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-blue-800/50 dark:hover:bg-blue-800/20 sm:px-3 sm:py-1"
                         >
                             ›
                         </button>
                         <button
                             onClick={() => paginate(totalPages)}
                             disabled={currentPage === totalPages}
-                            className="rounded border px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-blue-100 dark:border-blue-800/50 dark:hover:bg-blue-800/20 sm:px-3 sm:py-1"
+                            className="rounded border px-2 py-1 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-blue-800/50 dark:hover:bg-blue-800/20 sm:px-3 sm:py-1"
                         >
                             »
                         </button>
@@ -414,6 +453,19 @@ const TreatmentTable = () => {
                 isOpen={isVerification}
                 onConfirmDelete={handleConfirmDelete}
                 onClose={handleCloseModal}
+            />
+            {/* Export Modal with Status */}
+            <ExportPdfModal
+                isOpen={showExportModal}
+                onClose={() => setShowExportModal(false)}
+                onGenerate={handleGeneratePDF}
+                exportDates={exportDates}
+                setExportDates={setExportDates}
+                setExportPatientName={setExportPatientName}
+                exportPatientName={exportPatientName}
+                exportDescription={exportDescription}
+                setExportDescription={setExportDescription}
+
             />
         </div>
     );

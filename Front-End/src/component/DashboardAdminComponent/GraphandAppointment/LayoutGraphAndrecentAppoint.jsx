@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import StatisticsGraph from "./StatisticsGraph";
-import LogsAndAudit from "../../LogsAndAudit/LogsAndAudit";
+import RecentAppointment from "./Recentappointment";
 
 const LayoutGraphAndrecentAppoint = () => {
     return (
@@ -12,10 +12,9 @@ const LayoutGraphAndrecentAppoint = () => {
             transition={{ duration: 0.4, ease: "easeOut" }}
         >
             <StatisticsGraph />
-
             {/* Hide LogsAndAudit on mobile, show on md and above */}
             <div className="hidden md:block">
-                <LogsAndAudit />
+                <RecentAppointment />
             </div>
         </motion.div>
     );
